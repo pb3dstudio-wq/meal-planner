@@ -179,7 +179,7 @@
     .ingredient-row { display: flex; gap: 0.5rem; align-items: center; }
     .ingredient-row input { flex: 1; }
     .ingredient-row input.qty { width: 80px; flex: none; }
-    .ingredient-row input.unit { width: 90px; flex: none; }
+    .ingredient-row select.unit { width: 100px; flex: none; padding: 0.65rem 0.4rem; }
     .add-ingredient-btn { background: none; border: 1.5px dashed var(--border); color: var(--brown-light); padding: 0.5rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem; width: 100%; transition: all 0.2s; margin-top: 0.25rem; }
     .add-ingredient-btn:hover { border-color: var(--accent); color: var(--accent); }
 
@@ -248,7 +248,8 @@
     }
     .calendar-day.empty { background: transparent; border-color: transparent; }
     .calendar-day:not(.empty):hover { border-color: var(--accent); }
-    .calendar-day.today { border-color: var(--gold); background: #fffbf0; }
+    .calendar-day.other-month { opacity: 0.45; }
+    .calendar-day.other-month:not(.empty):hover { opacity: 0.75; border-color: var(--accent); }
     .day-number { font-size: 0.8rem; font-weight: 600; color: var(--brown-light); margin-bottom: 0.35rem; }
     .calendar-day.today .day-number { color: var(--gold); }
     .meal-slot { margin-bottom: 0.25rem; }
@@ -632,12 +633,14 @@
     document.getElementById('recipe-modal').classList.add('open');
   }
 
+  const UNITS = ['','g','kg','ml','l','oz','lb','tsp','tbsp','cup','pinch','slice','whole'];
   function addIngredientRow(data = {}) {
     const row = document.createElement('div');
     row.className = 'ingredient-row';
+    const unitOptions = UNITS.map(u => `<option value="${u}"${data.unit===u?' selected':''}>${u||'—'}</option>`).join('');
     row.innerHTML = `
       <input type="text" class="qty" placeholder="Qty" value="${data.qty || ''}"/>
-      <input type="text" class="unit" placeholder="Unit" value="${data.unit || ''}"/>
+      <select class="unit">${unitOptions}</select>
       <input type="text" placeholder="Ingredient name" value="${data.name || ''}"/>
       <button class="btn-icon" onclick="this.parentElement.remove()" title="Remove">✕</button>`;
     document.getElementById('ingredient-list').appendChild(row);
@@ -649,8 +652,8 @@
     const rows = document.querySelectorAll('#ingredient-list .ingredient-row');
     const ingredients = Array.from(rows).map(r => ({
       qty: r.querySelector('.qty').value.trim(),
-      unit: r.querySelector('.unit').value.trim(),
-      name: r.querySelectorAll('input')[2].value.trim()
+      unit: r.querySelector('select.unit').value,
+      name: r.querySelectorAll('input')[1].value.trim()
     })).filter(i => i.name);
     const data = {
       name,
@@ -690,17 +693,30 @@
     const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
     document.getElementById('month-label').textContent = `${months[currentMonth]} ${currentYear}`;
     const grid = document.getElementById('calendar-grid');
-    const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const dayHeaders = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
     const today = new Date();
-    let html = days.map(d => `<div class="calendar-day-header">${d}</div>`).join('');
-    const firstDay = new Date(currentYear, currentMonth, 1);
-    let startDow = firstDay.getDay(); // 0=Sun
-    startDow = startDow === 0 ? 6 : startDow - 1; // Convert to Mon=0
-    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-    for (let i = 0; i < startDow; i++) html += `<div class="calendar-day empty"></div>`;
-    for (let d = 1; d <= daysInMonth; d++) {
-      const dateStr = `${currentYear}-${String(currentMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const isToday = d === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear();
+    let html = dayHeaders.map(d => `<div class="calendar-day-header">${d}</div>`).join('');
+
+    // Find the Monday on or before the 1st of the month
+    const firstOfMonth = new Date(currentYear, currentMonth, 1);
+    let startDow = firstOfMonth.getDay(); // 0=Sun
+    startDow = startDow === 0 ? 6 : startDow - 1; // Mon=0
+    const calStart = new Date(firstOfMonth);
+    calStart.setDate(calStart.getDate() - startDow);
+
+    // Find the Sunday on or after the last day of the month
+    const lastOfMonth = new Date(currentYear, currentMonth + 1, 0);
+    let endDow = lastOfMonth.getDay();
+    endDow = endDow === 0 ? 6 : endDow - 1;
+    const calEnd = new Date(lastOfMonth);
+    calEnd.setDate(calEnd.getDate() + (6 - endDow));
+
+    let cur = new Date(calStart);
+    while (cur <= calEnd) {
+      const y = cur.getFullYear(), mo = cur.getMonth(), d = cur.getDate();
+      const dateStr = `${y}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const isThisMonth = mo === currentMonth && y === currentYear;
+      const isToday = d === today.getDate() && mo === today.getMonth() && y === today.getFullYear();
       const meals = mealPlan[dateStr] || [];
       const mealChips = meals.map((m, i) => {
         const r = recipes.find(x => x.id === m.recipeId);
@@ -708,11 +724,12 @@
         const cls = m.type === 'lunch' ? 'lunch' : m.type === 'dinner' ? 'dinner' : '';
         return `<div class="meal-chip ${cls}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px">${name}</span><button class="meal-chip-remove" onclick="removeMeal('${dateStr}',${i})">✕</button></div>`;
       }).join('');
-      html += `<div class="calendar-day${isToday?' today':''}">
+      html += `<div class="calendar-day${isToday?' today':''}${!isThisMonth?' other-month':''}">
         <div class="day-number">${d}</div>
         ${mealChips}
         <button class="add-meal-btn" onclick="openAddMeal('${dateStr}')">+ add</button>
       </div>`;
+      cur.setDate(cur.getDate() + 1);
     }
     grid.innerHTML = html;
   }
@@ -787,18 +804,29 @@
 
   // ── SHOPPING LIST ──
   function getWeeksInMonth(year, month) {
+    // Find the Monday that starts the first visible week
+    const firstOfMonth = new Date(year, month, 1);
+    let startDow = firstOfMonth.getDay();
+    startDow = startDow === 0 ? 6 : startDow - 1;
+    const calStart = new Date(firstOfMonth);
+    calStart.setDate(calStart.getDate() - startDow);
+
+    // Find the Sunday that ends the last visible week
+    const lastOfMonth = new Date(year, month + 1, 0);
+    let endDow = lastOfMonth.getDay();
+    endDow = endDow === 0 ? 6 : endDow - 1;
+    const calEnd = new Date(lastOfMonth);
+    calEnd.setDate(calEnd.getDate() + (6 - endDow));
+
     const weeks = [];
-    const first = new Date(year, month, 1);
-    const last = new Date(year, month + 1, 0);
-    let current = new Date(first);
+    let cur = new Date(calStart);
     let wk = 1;
-    while (current <= last) {
-      const start = new Date(current);
-      const end = new Date(current);
+    while (cur <= calEnd) {
+      const start = new Date(cur);
+      const end = new Date(cur);
       end.setDate(end.getDate() + 6);
-      if (end > last) end.setTime(last.getTime());
-      weeks.push({ label: `Week ${wk}`, start: new Date(start), end: new Date(end) });
-      current.setDate(current.getDate() + 7);
+      weeks.push({ label: `Week ${wk}`, start, end: new Date(end) });
+      cur.setDate(cur.getDate() + 7);
       wk++;
     }
     return weeks;
@@ -850,14 +878,19 @@
       return;
     }
 
-    // Aggregate ingredients
+    // Aggregate ingredients — sum quantities per ingredient+unit combo
     const ingredientMap = {};
     allMeals.forEach(m => {
       (m.recipe.ingredients || []).forEach(ing => {
         if (!ing.name) return;
-        const key = ing.name.toLowerCase();
-        if (!ingredientMap[key]) ingredientMap[key] = { name: ing.name, entries: [] };
-        ingredientMap[key].entries.push({ qty: ing.qty, unit: ing.unit });
+        const unit = ing.unit || '';
+        const mapKey = ing.name.toLowerCase() + '|' + unit.toLowerCase();
+        if (!ingredientMap[mapKey]) ingredientMap[mapKey] = { name: ing.name, unit, total: 0, hasQty: false };
+        const qty = parseFloat(ing.qty);
+        if (!isNaN(qty)) {
+          ingredientMap[mapKey].total += qty;
+          ingredientMap[mapKey].hasQty = true;
+        }
       });
     });
 
@@ -872,7 +905,9 @@
     ).join('');
 
     const items = Object.values(ingredientMap).map((ing, idx) => {
-      const qtyStr = ing.entries.map(e => `${e.qty||''} ${e.unit||''}`.trim()).filter(Boolean).join(', ');
+      const qtyStr = ing.hasQty
+        ? `${ing.total % 1 === 0 ? ing.total : ing.total.toFixed(2)}${ing.unit ? ' ' + ing.unit : ''}`
+        : (ing.unit || '');
       const ckid = `ck-${weekIdx}-${idx}`;
       const checked = checkedItems[ckid] ? 'checked' : '';
       return `<div class="shopping-item${checked?' checked':''}" id="si-${ckid}">
