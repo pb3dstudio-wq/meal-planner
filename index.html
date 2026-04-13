@@ -592,8 +592,8 @@
       const unitMap = {
         'gram': 'g', 'grams': 'g', 'g': 'g',
         'kilogram': 'kg', 'kilograms': 'kg', 'kg': 'kg',
-        'milliliter': 'ml', 'milliliters': 'ml', 'ml': 'ml',
-        'liter': 'l', 'liters': 'l', 'l': 'l',
+        'milliliter': 'ml', 'milliliters': 'ml', 'millilitre': 'ml', 'millilitres': 'ml', 'ml': 'ml',
+        'liter': 'l', 'liters': 'l', 'litre': 'l', 'litres': 'l', 'l': 'l',
         'ounce': 'oz', 'ounces': 'oz', 'oz': 'oz',
         'pound': 'lb', 'pounds': 'lb', 'lb': 'lb',
         'teaspoon': 'tsp', 'teaspoons': 'tsp', 'tsp': 'tsp',
@@ -602,13 +602,36 @@
         'pinch': 'pinch', 'pinches': 'pinch',
         'slice': 'slice', 'slices': 'slice',
         'whole': 'whole',
+        'unit': 'whole', 'units': 'whole',        // e.g. "3 units chicken breast" → whole
+        'sachet': 'tbsp', 'sachets': 'tbsp',      // e.g. "1 sachet curry powder" → tbsp
+        'packet': 'tbsp', 'packets': 'tbsp',
       };
+
+      // Descriptive prefixes to strip from ingredient names
+      const stripPrefixes = [
+        'british', 'irish', 'scottish', 'welsh', 'english', 'american', 'italian', 'french',
+        'free range', 'free-range', 'organic', 'fresh', 'frozen', 'dried', 'ground',
+        'premium', 'finest', 'classic', 'traditional', 'homestyle',
+      ];
+
+      function cleanIngredientName(name) {
+        if (!name) return name;
+        let cleaned = name.toLowerCase().trim();
+        // Strip leading descriptive words/phrases
+        for (const prefix of stripPrefixes) {
+          const re = new RegExp('^' + prefix + '\\s+', 'i');
+          cleaned = cleaned.replace(re, '');
+        }
+        // Capitalise first letter
+        return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+      }
 
       const ingredients = (data.extendedIngredients || []).map(ing => {
         const scaledQty = ing.amount * scaleFactor;
         const niceQty = scaledQty % 1 === 0 ? String(scaledQty) : scaledQty.toFixed(2);
         const unit = unitMap[ing.unit?.toLowerCase()] || '';
-        return { qty: niceQty, unit, name: ing.nameClean || ing.name || '' };
+        const name = cleanIngredientName(ing.nameClean || ing.name || '');
+        return { qty: niceQty, unit, name };
       });
 
       // Build method from analyzed instructions if available
