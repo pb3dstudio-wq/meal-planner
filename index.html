@@ -192,7 +192,18 @@
     .shopping-meal-dot.dinner { background: var(--brown-light); }
     .no-meals { text-align: center; padding: 2rem; color: var(--brown-light); font-size: 0.95rem; }
 
-    /* ── TOAST / LOADING ── */
+    /* ── IMPORT METHOD PICKER ── */
+    .import-choice { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem; }
+    .import-choice-btn { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1.25rem 1rem; border: 1.5px solid var(--border); border-radius: var(--radius); background: white; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; color: var(--brown); }
+    .import-choice-btn:hover { border-color: var(--accent); background: #fdf0eb; }
+    .import-choice-btn .choice-icon { font-size: 2rem; }
+    .import-choice-btn .choice-label { font-weight: 600; font-size: 0.95rem; }
+    .import-choice-btn .choice-sub { font-size: 0.78rem; color: var(--brown-light); text-align: center; }
+    .import-status { text-align: center; padding: 1.5rem 1rem; }
+    .import-status .spinner { margin: 0 auto 0.75rem; }
+    .import-status p { color: var(--brown-light); font-size: 0.9rem; }
+    .import-error { background: #fde8e8; border: 1px solid #f5c6c6; color: #c0392b; border-radius: var(--radius-sm); padding: 0.65rem 0.9rem; font-size: 0.85rem; margin-top: 0.75rem; display: none; }
+    .import-error.show { display: block; }
     #toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--brown); color: var(--cream); padding: 0.75rem 1.25rem; border-radius: var(--radius-sm); font-size: 0.9rem; z-index: 999; opacity: 0; transform: translateY(10px); transition: all 0.3s; pointer-events: none; }
     #toast.show { opacity: 1; transform: translateY(0); }
     .loading { text-align: center; padding: 3rem; color: var(--brown-light); }
@@ -275,7 +286,7 @@
   <div id="page-recipes" class="page active">
     <div class="page-header">
       <div class="page-title">My Recipes <small>Your personal recipe collection</small></div>
-      <button class="btn btn-primary" onclick="openAddRecipe()">＋ Add Recipe</button>
+      <button class="btn btn-primary" onclick="openAddRecipeChooser()">＋ Add Recipe</button>
     </div>
     <div id="recipes-container"><div class="loading"><div class="spinner"></div>Loading…</div></div>
   </div>
@@ -309,7 +320,59 @@
   </div>
 </div>
 
-<!-- RECIPE MODAL -->
+<!-- IMPORT METHOD MODAL -->
+<div class="modal-overlay" id="import-method-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Recipe</div>
+      <button class="modal-close" onclick="closeModal('import-method-modal')">✕</button>
+    </div>
+    <p style="color:var(--brown-light);font-size:0.9rem;margin-bottom:1.25rem">How would you like to add your recipe?</p>
+    <div class="import-choice">
+      <button class="import-choice-btn" onclick="chooseImportMethod('url')">
+        <span class="choice-icon">🔗</span>
+        <span class="choice-label">Paste a Link</span>
+        <span class="choice-sub">Import from HelloFresh, BBC Good Food & more</span>
+      </button>
+      <button class="import-choice-btn" onclick="chooseImportMethod('manual')">
+        <span class="choice-icon">✏️</span>
+        <span class="choice-label">Enter Manually</span>
+        <span class="choice-sub">Type in your own recipe from scratch</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- URL IMPORT MODAL -->
+<div class="modal-overlay" id="url-import-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Import from Web</div>
+      <button class="modal-close" onclick="closeModal('url-import-modal')">✕</button>
+    </div>
+    <div id="url-import-form">
+      <div class="form-group">
+        <label>Recipe URL</label>
+        <input type="url" id="import-url" placeholder="https://www.hellofresh.co.uk/recipes/..."/>
+      </div>
+      <div class="form-group">
+        <label>How many servings do you want to make?</label>
+        <input type="number" id="import-servings" placeholder="e.g. 4" min="1" value="2"/>
+      </div>
+      <div id="import-error" class="import-error"></div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" onclick="closeModal('url-import-modal')">Cancel</button>
+        <button class="btn btn-primary" id="import-btn" onclick="importFromUrl()">🔍 Import Recipe</button>
+      </div>
+    </div>
+    <div id="url-import-loading" class="import-status" style="display:none">
+      <div class="spinner"></div>
+      <p>Reading recipe page…<br>This usually takes 10–20 seconds.</p>
+    </div>
+  </div>
+</div>
+
+
 <div class="modal-overlay" id="recipe-modal">
   <div class="modal">
     <div class="modal-header">
@@ -400,7 +463,8 @@
 
   // expose globals
   Object.assign(window, {
-    showPage, openAddRecipe, closeModal, addIngredientRow, saveRecipe,
+    showPage, openAddRecipe, openAddRecipeChooser, chooseImportMethod, importFromUrl,
+    closeModal, addIngredientRow, saveRecipe,
     viewRecipe, editRecipe, deleteRecipe, changeMonth, openAddMeal,
     selectMealType, filterRecipePicker, confirmAddMeal, removeMeal,
     selectShoppingWeek, switchAuthTab, handleLogin, handleSignup,
@@ -486,7 +550,99 @@
     if (name === 'shopping') renderShoppingPage();
   }
 
-  // ── RECIPES ──
+  // ── IMPORT FROM URL ──
+  function openAddRecipeChooser() {
+    document.getElementById('import-method-modal').classList.add('open');
+  }
+  function chooseImportMethod(method) {
+    closeModal('import-method-modal');
+    if (method === 'manual') { openAddRecipe(); }
+    else {
+      document.getElementById('import-url').value = '';
+      document.getElementById('import-servings').value = '2';
+      document.getElementById('import-error').classList.remove('show');
+      document.getElementById('url-import-form').style.display = 'block';
+      document.getElementById('url-import-loading').style.display = 'none';
+      document.getElementById('url-import-modal').classList.add('open');
+    }
+  }
+  async function importFromUrl() {
+    const url = document.getElementById('import-url').value.trim();
+    const servings = parseInt(document.getElementById('import-servings').value) || 2;
+    const errEl = document.getElementById('import-error');
+    errEl.classList.remove('show');
+    if (!url) { errEl.textContent = 'Please paste a recipe URL.'; errEl.classList.add('show'); return; }
+    if (!url.startsWith('http')) { errEl.textContent = 'Please enter a valid URL starting with https://'; errEl.classList.add('show'); return; }
+
+    document.getElementById('url-import-form').style.display = 'none';
+    document.getElementById('url-import-loading').style.display = 'block';
+
+    try {
+      const SPOON_KEY = '296c2af855624e128e9679f4b3d720ea';
+      const apiUrl = `https://api.spoonacular.com/recipes/extract?url=${encodeURIComponent(url)}&apiKey=${SPOON_KEY}`;
+      const res = await fetch(apiUrl);
+      if (!res.ok) throw new Error('Spoonacular request failed: ' + res.status);
+      const data = await res.json();
+
+      // Work out scaling factor from original servings to desired servings
+      const originalServings = data.servings || 2;
+      const scaleFactor = servings / originalServings;
+
+      // Map Spoonacular units to our dropdown units
+      const unitMap = {
+        'gram': 'g', 'grams': 'g', 'g': 'g',
+        'kilogram': 'kg', 'kilograms': 'kg', 'kg': 'kg',
+        'milliliter': 'ml', 'milliliters': 'ml', 'ml': 'ml',
+        'liter': 'l', 'liters': 'l', 'l': 'l',
+        'ounce': 'oz', 'ounces': 'oz', 'oz': 'oz',
+        'pound': 'lb', 'pounds': 'lb', 'lb': 'lb',
+        'teaspoon': 'tsp', 'teaspoons': 'tsp', 'tsp': 'tsp',
+        'tablespoon': 'tbsp', 'tablespoons': 'tbsp', 'tbsp': 'tbsp',
+        'cup': 'cup', 'cups': 'cup',
+        'pinch': 'pinch', 'pinches': 'pinch',
+        'slice': 'slice', 'slices': 'slice',
+        'whole': 'whole',
+      };
+
+      const ingredients = (data.extendedIngredients || []).map(ing => {
+        const scaledQty = ing.amount * scaleFactor;
+        const niceQty = scaledQty % 1 === 0 ? String(scaledQty) : scaledQty.toFixed(2);
+        const unit = unitMap[ing.unit?.toLowerCase()] || '';
+        return { qty: niceQty, unit, name: ing.nameClean || ing.name || '' };
+      });
+
+      // Build method from analyzed instructions if available
+      let method = '';
+      if (data.analyzedInstructions && data.analyzedInstructions.length) {
+        method = data.analyzedInstructions[0].steps.map((s, i) => `${i+1}. ${s.step}`).join('\n\n');
+      } else if (data.instructions) {
+        method = data.instructions.replace(/<[^>]+>/g, '');
+      }
+
+      closeModal('url-import-modal');
+      openAddRecipe();
+
+      document.getElementById('r-name').value = data.title || '';
+      document.getElementById('r-prep').value = data.preparationMinutes > 0 ? `${data.preparationMinutes} mins` : '';
+      document.getElementById('r-cook').value = data.cookingMinutes > 0 ? `${data.cookingMinutes} mins` : (data.readyInMinutes ? `${data.readyInMinutes} mins` : '');
+      document.getElementById('r-servings').value = servings;
+      document.getElementById('r-image').value = data.image || '';
+      document.getElementById('r-method').value = method;
+
+      document.getElementById('ingredient-list').innerHTML = '';
+      (ingredients.length ? ingredients : [{}]).forEach(i => addIngredientRow(i));
+
+      toast('Recipe imported! Review and save ✓');
+    } catch(e) {
+      document.getElementById('url-import-form').style.display = 'block';
+      document.getElementById('url-import-loading').style.display = 'none';
+      errEl.textContent = 'Could not import recipe. Please check the URL and try again, or enter manually.';
+      errEl.classList.add('show');
+      console.error(e);
+    }
+  }
+
+
   async function loadRecipes() {
     const snap = await getDocs(recipesCol());
     recipes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
