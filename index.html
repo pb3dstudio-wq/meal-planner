@@ -523,6 +523,16 @@
   async function handleLogout() { await signOut(auth); }
 
   onAuthStateChanged(auth, async (user) => {
+    // ── AUTH TEMPORARILY DISABLED FOR DEVELOPMENT ──
+    // To re-enable: remove the 4 lines below this comment and uncomment the original block
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('user-badge').textContent = 'Dev Mode';
+    currentUser = { uid: 'dev-user' };
+    await Promise.all([loadRecipes(), loadMealPlan()]);
+    renderShoppingWeekSelector();
+    return;
+    // ── ORIGINAL AUTH BLOCK (re-enable when ready) ──
     if (user) {
       currentUser = user;
       document.getElementById('auth-screen').style.display = 'none';
@@ -588,7 +598,7 @@
       const originalServings = data.servings || 2;
       const scaleFactor = servings / originalServings;
 
-      // Map Spoonacular units to our dropdown units
+      // Map Spoonacular units to our dropdown units (lowercased for matching)
       const unitMap = {
         'gram': 'g', 'grams': 'g', 'g': 'g',
         'kilogram': 'kg', 'kilograms': 'kg', 'kg': 'kg',
@@ -596,16 +606,33 @@
         'liter': 'l', 'liters': 'l', 'litre': 'l', 'litres': 'l', 'l': 'l',
         'ounce': 'oz', 'ounces': 'oz', 'oz': 'oz',
         'pound': 'lb', 'pounds': 'lb', 'lb': 'lb',
-        'teaspoon': 'tsp', 'teaspoons': 'tsp', 'tsp': 'tsp',
-        'tablespoon': 'tbsp', 'tablespoons': 'tbsp', 'tbsp': 'tbsp',
-        'cup': 'cup', 'cups': 'cup',
+        'teaspoon': 'tsp', 'teaspoons': 'tsp', 'tsp': 'tsp', 't': 'tsp',
+        'tablespoon': 'tbsp', 'tablespoons': 'tbsp', 'tbsp': 'tbsp', 'tbs': 'tbsp', 'tb': 'tbsp',
+        'cup': 'cup', 'cups': 'cup', 'c': 'cup',
         'pinch': 'pinch', 'pinches': 'pinch',
         'slice': 'slice', 'slices': 'slice',
         'whole': 'whole',
-        'unit': 'whole', 'units': 'whole',        // e.g. "3 units chicken breast" → whole
-        'sachet': 'tbsp', 'sachets': 'tbsp',      // e.g. "1 sachet curry powder" → tbsp
+        'unit': 'whole', 'units': 'whole',
+        'sachet': 'tbsp', 'sachets': 'tbsp',
         'packet': 'tbsp', 'packets': 'tbsp',
+        'bunch': 'whole', 'bunches': 'whole',
+        'clove': 'whole', 'cloves': 'whole',
+        'sprig': 'whole', 'sprigs': 'whole',
+        'handful': 'cup', 'handfuls': 'cup',
+        'serving': 'whole', 'servings': 'whole',
+        'piece': 'whole', 'pieces': 'whole',
+        'large': 'whole', 'medium': 'whole', 'small': 'whole',
       };
+
+      function mapUnit(rawUnit) {
+        if (!rawUnit) return '';
+        // Try exact lowercase match first
+        const lower = rawUnit.toLowerCase().trim();
+        if (unitMap[lower]) return unitMap[lower];
+        // Try stripping trailing 's' for plurals not already covered
+        if (lower.endsWith('s') && unitMap[lower.slice(0,-1)]) return unitMap[lower.slice(0,-1)];
+        return '';
+      }
 
       // Descriptive prefixes to strip from ingredient names
       const stripPrefixes = [
@@ -629,7 +656,7 @@
       const ingredients = (data.extendedIngredients || []).map(ing => {
         const scaledQty = ing.amount * scaleFactor;
         const niceQty = scaledQty % 1 === 0 ? String(scaledQty) : scaledQty.toFixed(2);
-        const unit = unitMap[ing.unit?.toLowerCase()] || '';
+        const unit = mapUnit(ing.unit);
         const name = cleanIngredientName(ing.nameClean || ing.name || '');
         return { qty: niceQty, unit, name };
       });
