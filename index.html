@@ -593,14 +593,12 @@
       const res = await fetch(apiUrl);
       if (!res.ok) throw new Error('Spoonacular request failed: ' + res.status);
       const data = await res.json();
-      // TEMP DEBUG - log full response
-      console.log('FULL SPOONACULAR RESPONSE:', JSON.stringify(data, null, 2));
 
       // Work out scaling factor from original servings to desired servings
       const originalServings = data.servings || 2;
       const scaleFactor = servings / originalServings;
 
-      // Map Spoonacular units to our dropdown units (lowercased for matching)
+      // Map Spoonacular unit field values to our dropdown units
       const unitMap = {
         'gram': 'g', 'grams': 'g', 'g': 'g',
         'kilogram': 'kg', 'kilograms': 'kg', 'kg': 'kg',
@@ -608,32 +606,50 @@
         'liter': 'l', 'liters': 'l', 'litre': 'l', 'litres': 'l', 'l': 'l',
         'ounce': 'oz', 'ounces': 'oz', 'oz': 'oz',
         'pound': 'lb', 'pounds': 'lb', 'lb': 'lb',
-        'teaspoon': 'tsp', 'teaspoons': 'tsp', 'tsp': 'tsp', 't': 'tsp',
-        'tablespoon': 'tbsp', 'tablespoons': 'tbsp', 'tbsp': 'tbsp', 'tbs': 'tbsp', 'tb': 'tbsp',
-        'cup': 'cup', 'cups': 'cup', 'c': 'cup',
+        'teaspoon': 'tsp', 'teaspoons': 'tsp', 'tsp': 'tsp', 'tsps': 'tsp',
+        'tablespoon': 'tbsp', 'tablespoons': 'tbsp', 'tbsp': 'tbsp', 'tbs': 'tbsp',
+        'cup': 'cup', 'cups': 'cup',
         'pinch': 'pinch', 'pinches': 'pinch',
         'slice': 'slice', 'slices': 'slice',
         'whole': 'whole',
-        'unit': 'whole', 'units': 'whole',
-        'sachet': 'tbsp', 'sachets': 'tbsp',
-        'packet': 'tbsp', 'packets': 'tbsp',
-        'bunch': 'whole', 'bunches': 'whole',
-        'clove': 'whole', 'cloves': 'whole',
-        'sprig': 'whole', 'sprigs': 'whole',
-        'handful': 'cup', 'handfuls': 'cup',
-        'serving': 'whole', 'servings': 'whole',
-        'piece': 'whole', 'pieces': 'whole',
-        'large': 'whole', 'medium': 'whole', 'small': 'whole',
+      };
+
+      // When Spoonacular sees "1 unit(s) Garlic Clove" it puts "units garlic clove" in the name
+      // and leaves the unit field empty. This map detects those embedded unit words.
+      const embeddedUnitMap = {
+        'unit': 'whole',    'units': 'whole',
+        'sachet': 'tbsp',   'sachets': 'tbsp',
+        'packet': 'tbsp',   'packets': 'tbsp',
+        'carton': 'whole',  'cartons': 'whole',
+        'can': 'whole',     'cans': 'whole',
+        'jar': 'whole',     'jars': 'whole',
+        'bunch': 'whole',   'bunches': 'whole',
+        'sprig': 'whole',   'sprigs': 'whole',
+        'clove': 'whole',   'cloves': 'whole',
+        'piece': 'whole',   'pieces': 'whole',
+        'slice': 'slice',   'slices': 'slice',
       };
 
       function mapUnit(rawUnit) {
         if (!rawUnit) return '';
-        // Try exact lowercase match first
         const lower = rawUnit.toLowerCase().trim();
-        if (unitMap[lower]) return unitMap[lower];
-        // Try stripping trailing 's' for plurals not already covered
-        if (lower.endsWith('s') && unitMap[lower.slice(0,-1)]) return unitMap[lower.slice(0,-1)];
-        return '';
+        return unitMap[lower] || '';
+      }
+
+      // If unit field is empty, check if the first word of the name is a unit word
+      function resolveIngredient(rawName, rawUnit) {
+        const unitFromField = mapUnit(rawUnit);
+        if (unitFromField) return { unit: unitFromField, name: rawName };
+        // Try extracting unit from start of name
+        if (rawName) {
+          const words = rawName.trim().split(/\s+/);
+          const firstWord = words[0].toLowerCase();
+          if (embeddedUnitMap[firstWord]) {
+            return { unit: embeddedUnitMap[firstWord], name: words.slice(1).join(' ') };
+          }
+        }
+        // No unit found — return as whole if no unit at all
+        return { unit: 'whole', name: rawName };
       }
 
       // Descriptive prefixes to strip from ingredient names
@@ -646,23 +662,19 @@
       function cleanIngredientName(name) {
         if (!name) return name;
         let cleaned = name.toLowerCase().trim();
-        // Strip leading descriptive words/phrases
         for (const prefix of stripPrefixes) {
           const re = new RegExp('^' + prefix + '\\s+', 'i');
           cleaned = cleaned.replace(re, '');
         }
-        // Capitalise first letter
         return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
       }
 
       const ingredients = (data.extendedIngredients || []).map(ing => {
-        // TEMP DEBUG — open browser console (F12) after importing to see raw data
-        console.log('RAW ING:', ing.name, '| unit:', JSON.stringify(ing.unit), '| measures:', JSON.stringify(ing.measures));
         const scaledQty = ing.amount * scaleFactor;
         const niceQty = scaledQty % 1 === 0 ? String(scaledQty) : scaledQty.toFixed(2);
-        const unit = mapUnit(ing.unit);
-        const name = cleanIngredientName(ing.nameClean || ing.name || '');
-        return { qty: niceQty, unit, name };
+        const rawName = ing.nameClean || ing.name || '';
+        const { unit, name } = resolveIngredient(rawName, ing.unit);
+        return { qty: niceQty, unit, name: cleanIngredientName(name) };
       });
 
       // Build method from analyzed instructions if available
