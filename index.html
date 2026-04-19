@@ -593,6 +593,8 @@
       const res = await fetch(apiUrl);
       if (!res.ok) throw new Error('Spoonacular request failed: ' + res.status);
       const data = await res.json();
+      // TEMP DEBUG - log full response
+      console.log('FULL SPOONACULAR RESPONSE:', JSON.stringify(data, null, 2));
 
       // Work out scaling factor from original servings to desired servings
       const originalServings = data.servings || 2;
@@ -654,6 +656,8 @@
       }
 
       const ingredients = (data.extendedIngredients || []).map(ing => {
+        // TEMP DEBUG — open browser console (F12) after importing to see raw data
+        console.log('RAW ING:', ing.name, '| unit:', JSON.stringify(ing.unit), '| measures:', JSON.stringify(ing.measures));
         const scaledQty = ing.amount * scaleFactor;
         const niceQty = scaledQty % 1 === 0 ? String(scaledQty) : scaledQty.toFixed(2);
         const unit = mapUnit(ing.unit);
