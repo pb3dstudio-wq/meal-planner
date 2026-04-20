@@ -193,11 +193,14 @@
     .no-meals { text-align: center; padding: 2rem; color: var(--brown-light); font-size: 0.95rem; }
 
     /* ── WEEK SAVE / LOAD ── */
-    .week-btn-row { display: flex; align-items: center; gap: 0.35rem; }
-    .week-action-btn { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.2rem 0.45rem; font-size: 0.72rem; cursor: pointer; color: var(--brown-light); transition: all 0.2s; white-space: nowrap; }
-    .week-action-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .calendar-outer { display: flex; flex-direction: column; gap: 6px; }
+    .calendar-week-row { display: flex; align-items: stretch; gap: 6px; }
+    .week-sidebar { display: flex; flex-direction: column; align-items: stretch; justify-content: center; gap: 4px; width: 54px; flex-shrink: 0; }
+    .week-action-btn { background: white; border: 1.5px solid var(--border); border-radius: 8px; padding: 0.3rem 0; font-size: 0.72rem; font-family: 'DM Sans', sans-serif; cursor: pointer; color: var(--brown-light); transition: all 0.2s; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 0.2rem; flex: 1; }
+    .week-action-btn:hover { border-color: var(--accent); color: var(--accent); background: #fdf0eb; }
     .week-action-btn.save { border-color: var(--green); color: var(--green); }
-    .week-action-btn.save:hover { background: var(--green); color: white; }
+    .week-action-btn.save:hover { background: var(--green); color: white; border-color: var(--green); }
+    .week-days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; flex: 1; }
     .saved-plans-list { display: flex; flex-direction: column; gap: 0.6rem; max-height: 340px; overflow-y: auto; margin-top: 0.5rem; }
     .saved-plan-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.8rem 1rem; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: white; cursor: pointer; transition: all 0.2s; }
     .saved-plan-item:hover { border-color: var(--accent); background: #fdf0eb; }
@@ -321,8 +324,7 @@
         <button onclick="changeMonth(1)">›</button>
       </div>
     </div>
-    <div id="planner-week-buttons" style="display:flex;flex-direction:column;gap:0.4rem;margin-bottom:1rem;"></div>
-    <div class="calendar" id="calendar-grid"></div>
+    <div class="calendar-outer" id="calendar-grid"></div>
   </div>
 
   <div id="page-shopping" class="page">
@@ -860,30 +862,49 @@
     document.getElementById('month-label').textContent = `${months[currentMonth]} ${currentYear}`;
     const grid = document.getElementById('calendar-grid');
     const today = new Date();
-    let html = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => `<div class="calendar-day-header">${d}</div>`).join('');
+
     const firstOfMonth = new Date(currentYear, currentMonth, 1);
     let sd = firstOfMonth.getDay(); sd = sd===0?6:sd-1;
     const calStart = new Date(firstOfMonth); calStart.setDate(calStart.getDate()-sd);
     const lastOfMonth = new Date(currentYear, currentMonth+1, 0);
     let ed = lastOfMonth.getDay(); ed = ed===0?6:ed-1;
     const calEnd = new Date(lastOfMonth); calEnd.setDate(calEnd.getDate()+(6-ed));
+
+    // Day headers row with blank sidebar spacer
+    let html = `<div class="calendar-week-row">
+      <div class="week-sidebar"></div>
+      <div class="week-days-grid">${['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d=>`<div class="calendar-day-header">${d}</div>`).join('')}</div>
+    </div>`;
+
+    // Build week rows
     let cur = new Date(calStart);
+    let weekIdx = 0;
     while (cur <= calEnd) {
-      const y=cur.getFullYear(), mo=cur.getMonth(), d=cur.getDate();
-      const dateStr = `${y}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const isThisMonth = mo===currentMonth && y===currentYear;
-      const isToday = d===today.getDate() && mo===today.getMonth() && y===today.getFullYear();
-      const chips = (mealPlan[dateStr]||[]).map((m,i)=>{
-        const r=recipes.find(x=>x.id===m.recipeId); const cls=m.type==='lunch'?'lunch':m.type==='dinner'?'dinner':'';
-        return `<div class="meal-chip ${cls}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px">${r?r.name:'?'}</span><button class="meal-chip-remove" onclick="removeMeal('${dateStr}',${i})">✕</button></div>`;
-      }).join('');
-      html += `<div class="calendar-day${isToday?' today':''}${!isThisMonth?' other-month':''}">
-        <div class="day-number">${d}</div>${chips}
-        <button class="add-meal-btn" onclick="openAddMeal('${dateStr}')">+ add</button></div>`;
-      cur.setDate(cur.getDate()+1);
+      let daysHtml = '';
+      for (let dow = 0; dow < 7; dow++) {
+        const y=cur.getFullYear(), mo=cur.getMonth(), d=cur.getDate();
+        const dateStr = `${y}-${String(mo+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const isThisMonth = mo===currentMonth && y===currentYear;
+        const isToday = d===today.getDate() && mo===today.getMonth() && y===today.getFullYear();
+        const chips = (mealPlan[dateStr]||[]).map((m,i)=>{
+          const r=recipes.find(x=>x.id===m.recipeId); const cls=m.type==='lunch'?'lunch':m.type==='dinner'?'dinner':'';
+          return `<div class="meal-chip ${cls}"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px">${r?r.name:'?'}</span><button class="meal-chip-remove" onclick="removeMeal('${dateStr}',${i})">✕</button></div>`;
+        }).join('');
+        daysHtml += `<div class="calendar-day${isToday?' today':''}${!isThisMonth?' other-month':''}">
+          <div class="day-number">${d}</div>${chips}
+          <button class="add-meal-btn" onclick="openAddMeal('${dateStr}')">+ add</button></div>`;
+        cur.setDate(cur.getDate()+1);
+      }
+      html += `<div class="calendar-week-row">
+        <div class="week-sidebar">
+          <button class="week-action-btn save" onclick="openSaveWeek(${weekIdx})">💾 Save</button>
+          <button class="week-action-btn" onclick="openLoadWeek(${weekIdx})">📂 Load</button>
+        </div>
+        <div class="week-days-grid">${daysHtml}</div>
+      </div>`;
+      weekIdx++;
     }
     grid.innerHTML = html;
-    renderPlannerWeekButtons();
   }
   function changeMonth(dir) {
     currentMonth += dir;
@@ -1072,20 +1093,7 @@
     toast('Plan deleted');
   }
 
-  // ── UPDATE WEEK SELECTOR TO INCLUDE SAVE/LOAD BUTTONS ──
-  function renderPlannerWeekButtons() {
-    const weeks = getWeeks(currentYear, currentMonth);
-    const container = document.getElementById('planner-week-buttons');
-    if (!container) return;
-    container.innerHTML = weeks.map((w, i) =>
-      `<div class="week-btn-row">
-        <span style="font-size:0.82rem;color:var(--brown-light);min-width:54px">${w.label}</span>
-        <span style="font-size:0.75rem;color:var(--border)">${fmtDate(w.start)}–${fmtDate(w.end)}</span>
-        <button class="week-action-btn save" onclick="openSaveWeek(${i})">💾 Save</button>
-        <button class="week-action-btn" onclick="openLoadWeek(${i})">📂 Load</button>
-      </div>`
-    ).join('');
-  }
+
 </script>
 </body>
 </html>
