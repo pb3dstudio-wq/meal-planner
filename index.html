@@ -471,6 +471,11 @@
       <input type="text" id="recipe-search-input" placeholder="Type to filter…" oninput="filterRecipePicker()"/>
     </div>
     <div class="recipe-pick-list" id="recipe-pick-list"></div>
+    <div class="form-group" style="margin-top:1rem">
+      <label>How many people are you cooking for?</label>
+      <input type="number" id="meal-people" value="2" min="1" max="20"/>
+      <div id="meal-servings-note" style="font-size:0.78rem;color:var(--brown-light);margin-top:0.35rem"></div>
+    </div>
     <div class="form-actions">
       <button class="btn btn-secondary" onclick="closeModal('meal-modal')">Cancel</button>
       <button class="btn btn-primary" onclick="confirmAddMeal()">Add to Plan</button>
@@ -529,6 +534,11 @@
       selectedRecipeId = id;
       document.querySelectorAll('.recipe-pick-item').forEach(e => e.classList.remove('selected'));
       el.classList.add('selected');
+      // Show servings note
+      const r = recipes.find(x => x.id === id);
+      const note = document.getElementById('meal-servings-note');
+      if (r && r.servings) note.textContent = `This recipe is written for ${r.servings} serving${r.servings!=1?'s':''}.`;
+      else note.textContent = '';
     },
     toggleCheck: (id) => {
       checkedItems[id] = !checkedItems[id];
@@ -916,6 +926,8 @@
     document.querySelectorAll('.meal-type-btn').forEach(b=>b.classList.remove('selected'));
     document.querySelector('[data-type="breakfast"]').classList.add('selected');
     document.getElementById('recipe-search-input').value='';
+    document.getElementById('meal-people').value='2';
+    document.getElementById('meal-servings-note').textContent='';
     document.getElementById('meal-modal-title').textContent=`Add Meal — ${dateStr}`;
     renderRecipePicker(recipes); document.getElementById('meal-modal').classList.add('open');
   }
@@ -931,7 +943,8 @@
   }
   async function confirmAddMeal() {
     if (!selectedRecipeId){toast('Please select a recipe');return;}
-    const meals=mealPlan[addMealDate]||[]; meals.push({type:selectedMealType,recipeId:selectedRecipeId});
+    const people = parseInt(document.getElementById('meal-people').value) || 2;
+    const meals=mealPlan[addMealDate]||[]; meals.push({type:selectedMealType,recipeId:selectedRecipeId,people});
     mealPlan[addMealDate]=meals; await setDoc(mealplanDoc(addMealDate),{meals});
     closeModal('meal-modal'); renderCalendar(); toast('Meal added ✓');
   }
@@ -964,29 +977,70 @@
     const allMeals=[]; let d=new Date(week.start);
     while(d<=week.end){
       const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-      (mealPlan[key]||[]).forEach(m=>{const r=recipes.find(x=>x.id===m.recipeId);if(r)allMeals.push({date:key,type:m.type,recipe:r});});
+      (mealPlan[key]||[]).forEach(m=>{const r=recipes.find(x=>x.id===m.recipeId);if(r)allMeals.push({type:m.type,recipe:r,people:m.people||2});});
       d.setDate(d.getDate()+1);
     }
     if(!allMeals.length){content.innerHTML=`<div class="no-meals">No meals planned for this week.<br>Add meals in the Planner tab first!</div>`;return;}
+
+    // Category definitions — each ingredient gets assigned to one
+    const categoryDefs = [
+      { key:'meat',    label:'🥩 Meat & Fish',       keywords:['chicken','beef','lamb','pork','mince','bacon','sausage','turkey','duck','fish','salmon','tuna','prawn','shrimp','steak','chorizo'] },
+      { key:'veg',     label:'🥦 Fruit & Vegetables', keywords:['onion','garlic','tomato','pepper','carrot','potato','leek','spinach','lettuce','cucumber','courgette','broccoli','mushroom','celery','parsley','coriander','basil','chilli','ginger','lemon','lime','apple','banana','avocado','kale','cabbage','pea','corn','herb','thyme','rosemary','sage','mint'] },
+      { key:'dairy',   label:'🧀 Dairy & Eggs',       keywords:['milk','cream','butter','cheese','yogurt','egg','creme fraiche','mascarpone','mozzarella','parmesan','feta','ricotta','cream cheese'] },
+      { key:'fridge',  label:'🧊 Fridge & Deli',      keywords:['hummus','pesto','tofu','tempeh','stock paste','passata','tomato paste','sun-dried','olives','capers','salami','ham','pancetta'] },
+      { key:'bakery',  label:'🍞 Bakery & Bread',     keywords:['bread','pitta','wrap','tortilla','baguette','roll','naan','flatbread','crumpet'] },
+      { key:'pasta',   label:'🍝 Pasta, Rice & Grains',keywords:['pasta','penne','spaghetti','rice','noodle','couscous','quinoa','lentil','bulgur','orzo','linguine','tagliatelle','fusilli','risotto'] },
+      { key:'tins',    label:'🥫 Tins & Jars',        keywords:['tin','canned','can','jar','beans','chickpea','lentils','chopped tomato','coconut milk','soup','baked beans'] },
+      { key:'spices',  label:'🧂 Spices & Condiments', keywords:['salt','pepper','spice','cumin','paprika','turmeric','coriander powder','chilli powder','oregano','mixed herbs','curry','sauce','oil','vinegar','soy','mustard','ketchup','mayo','honey','sugar','flour','stock','bouillon','seasoning','cayenne','cinnamon','nutmeg','bay'] },
+      { key:'drinks',  label:'🥤 Drinks & Other',     keywords:['water','juice','wine','beer','stock','broth','coconut water'] },
+    ];
+
+    function categorise(name) {
+      const lower = name.toLowerCase();
+      for (const cat of categoryDefs) {
+        if (cat.keywords.some(k => lower.includes(k))) return cat.key;
+      }
+      return 'other';
+    }
+
+    // Aggregate ingredients with people-based scaling
     const imap={};
     allMeals.forEach(m=>{
+      const recipeServings = parseInt(m.recipe.servings) || 2;
+      const scaleFactor = m.people / recipeServings;
       (m.recipe.ingredients||[]).forEach(ing=>{
         if(!ing.name)return;
-        const unit=ing.unit||''; const mk=ing.name.toLowerCase()+'|'+unit.toLowerCase();
-        if(!imap[mk])imap[mk]={name:ing.name,unit,total:0,hasQty:false};
-        const q=parseFloat(ing.qty); if(!isNaN(q)){imap[mk].total+=q;imap[mk].hasQty=true;}
+        const unit=ing.unit||'';
+        const mk=ing.name.toLowerCase()+'|'+unit.toLowerCase();
+        if(!imap[mk])imap[mk]={name:ing.name,unit,total:0,hasQty:false,category:categorise(ing.name)};
+        const q=parseFloat(ing.qty);
+        if(!isNaN(q)){imap[mk].total+=q*scaleFactor;imap[mk].hasQty=true;}
       });
     });
-    const mealsList=allMeals.map(m=>`<div class="shopping-meal-card"><div class="shopping-meal-dot ${m.type}"></div><div><strong>${m.recipe.name}</strong><div style="font-size:0.8rem;color:var(--brown-light)">${m.date} · ${m.type}</div></div></div>`).join('');
-    const items=Object.values(imap).map((ing,idx)=>{
-      const qs=ing.hasQty?`${ing.total%1===0?ing.total:ing.total.toFixed(2)}${ing.unit?' '+ing.unit:''}`: (ing.unit||'');
-      const ckid=`ck-${weekIdx}-${idx}`,checked=checkedItems[ckid]?'checked':'';
-      return `<div class="shopping-item${checked?' checked':''}" id="si-${ckid}"><input type="checkbox" id="${ckid}" ${checked} onchange="toggleCheck('${ckid}')"/><label for="${ckid}">${ing.name}${qs?' — '+qs:''}</label></div>`;
+
+    // Group by category
+    const grouped={};
+    Object.values(imap).forEach(ing=>{
+      const cat=ing.category||'other';
+      if(!grouped[cat])grouped[cat]=[];
+      grouped[cat].push(ing);
+    });
+
+    // Build category cards in defined order, then 'other' last
+    const orderedKeys=[...categoryDefs.map(c=>c.key),'other'];
+    let itemIdx=0;
+    const cards=orderedKeys.map(key=>{
+      const items=grouped[key]; if(!items||!items.length) return '';
+      const catLabel = key==='other' ? '🛒 Other' : categoryDefs.find(c=>c.key===key).label;
+      const rows=items.map(ing=>{
+        const qs=ing.hasQty?`${ing.total%1===0?ing.total:parseFloat(ing.total.toFixed(2))}${ing.unit?' '+ing.unit:''}`:ing.unit||'';
+        const ckid=`ck-${weekIdx}-${itemIdx++}`,checked=checkedItems[ckid]?'checked':'';
+        return `<div class="shopping-item${checked?' checked':''}" id="si-${ckid}"><input type="checkbox" id="${ckid}" ${checked} onchange="toggleCheck('${ckid}')"/><label for="${ckid}">${ing.name}${qs?' — '+qs:''}</label></div>`;
+      }).join('');
+      return `<div class="shopping-category"><div class="shopping-category-title">${catLabel}</div>${rows}</div>`;
     }).join('');
-    content.innerHTML=`<h3 style="font-family:'Playfair Display',serif;margin-bottom:1rem;font-size:1.1rem">Meals this week</h3>
-      <div class="shopping-meals">${mealsList}</div>
-      <h3 style="font-family:'Playfair Display',serif;margin-bottom:1rem;font-size:1.1rem">🛒 Shopping List</h3>
-      <div class="shopping-list"><div class="shopping-category"><div class="shopping-category-title">🧺 All Ingredients</div>${items}</div></div>`;
+
+    content.innerHTML=`<div class="shopping-list">${cards}</div>`;
   }
 
   // ── SAVED WEEK PLANS ──
