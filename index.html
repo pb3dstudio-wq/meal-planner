@@ -192,7 +192,21 @@
     .shopping-meal-dot.dinner { background: var(--brown-light); }
     .no-meals { text-align: center; padding: 2rem; color: var(--brown-light); font-size: 0.95rem; }
 
-    /* ── IMPORT METHOD PICKER ── */
+    /* ── WEEK SAVE / LOAD ── */
+    .week-btn-row { display: flex; align-items: center; gap: 0.35rem; }
+    .week-action-btn { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.2rem 0.45rem; font-size: 0.72rem; cursor: pointer; color: var(--brown-light); transition: all 0.2s; white-space: nowrap; }
+    .week-action-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .week-action-btn.save { border-color: var(--green); color: var(--green); }
+    .week-action-btn.save:hover { background: var(--green); color: white; }
+    .saved-plans-list { display: flex; flex-direction: column; gap: 0.6rem; max-height: 340px; overflow-y: auto; margin-top: 0.5rem; }
+    .saved-plan-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.8rem 1rem; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: white; cursor: pointer; transition: all 0.2s; }
+    .saved-plan-item:hover { border-color: var(--accent); background: #fdf0eb; }
+    .saved-plan-info { flex: 1; }
+    .saved-plan-name { font-weight: 600; font-size: 0.95rem; }
+    .saved-plan-meta { font-size: 0.78rem; color: var(--brown-light); margin-top: 0.15rem; }
+    .saved-plan-delete { background: none; border: none; color: var(--border); cursor: pointer; font-size: 1rem; padding: 0.25rem; border-radius: 4px; transition: all 0.2s; }
+    .saved-plan-delete:hover { color: #e05555; background: #fde8e8; }
+    .no-saved-plans { text-align: center; padding: 2rem; color: var(--brown-light); font-size: 0.9rem; }
     .import-choice { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem; }
     .import-choice-btn { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1.25rem 1rem; border: 1.5px solid var(--border); border-radius: var(--radius); background: white; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; color: var(--brown); }
     .import-choice-btn:hover { border-color: var(--accent); background: #fdf0eb; }
@@ -307,6 +321,7 @@
         <button onclick="changeMonth(1)">›</button>
       </div>
     </div>
+    <div id="planner-week-buttons" style="display:flex;flex-direction:column;gap:0.4rem;margin-bottom:1rem;"></div>
     <div class="calendar" id="calendar-grid"></div>
   </div>
 
@@ -317,6 +332,41 @@
     </div>
     <div class="shopping-controls"><div class="week-selector" id="week-selector"></div></div>
     <div id="shopping-content"><div class="no-meals">Select a week above to generate your shopping list.</div></div>
+  </div>
+</div>
+
+<!-- SAVE WEEK MODAL -->
+<div class="modal-overlay" id="save-week-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Save Week as Template</div>
+      <button class="modal-close" onclick="closeModal('save-week-modal')">✕</button>
+    </div>
+    <p style="color:var(--brown-light);font-size:0.9rem;margin-bottom:1.25rem">Give this week plan a name so you can load it again later.</p>
+    <div class="form-group">
+      <label>Plan Name</label>
+      <input type="text" id="save-week-name" placeholder="e.g. Healthy Week, Budget Week, Quick Meals…"/>
+    </div>
+    <div id="save-week-error" class="import-error"></div>
+    <div class="form-actions">
+      <button class="btn btn-secondary" onclick="closeModal('save-week-modal')">Cancel</button>
+      <button class="btn btn-green" onclick="confirmSaveWeek()">💾 Save Plan</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOAD WEEK MODAL -->
+<div class="modal-overlay" id="load-week-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Load a Saved Plan</div>
+      <button class="modal-close" onclick="closeModal('load-week-modal')">✕</button>
+    </div>
+    <p style="color:var(--brown-light);font-size:0.9rem;margin-bottom:0.5rem">Select a saved plan to load it into this week. This will replace any meals already planned for that week.</p>
+    <div id="saved-plans-list"></div>
+    <div class="form-actions" style="margin-top:1rem">
+      <button class="btn btn-secondary" onclick="closeModal('load-week-modal')">Cancel</button>
+    </div>
   </div>
 </div>
 
@@ -450,16 +500,19 @@
   const auth = getAuth(app);
   const googleProvider = new GoogleAuthProvider();
 
-  let currentUser = null, recipes = [], mealPlan = {};
+  let currentUser = null, recipes = [], mealPlan = {}, savedPlans = [];
   let currentMonth = new Date().getMonth(), currentYear = new Date().getFullYear();
   let editingRecipeId = null, addMealDate = null;
   let selectedMealType = 'breakfast', selectedRecipeId = null;
   let currentShoppingWeek = null, checkedItems = {};
+  let saveWeekIndex = null, loadWeekIndex = null;
 
-  const recipesCol  = () => collection(db, 'users', currentUser.uid, 'recipes');
-  const mealplanCol = () => collection(db, 'users', currentUser.uid, 'mealplan');
-  const mealplanDoc = (d) => doc(db, 'users', currentUser.uid, 'mealplan', d);
-  const recipeDoc   = (id) => doc(db, 'users', currentUser.uid, 'recipes', id);
+  const recipesCol    = () => collection(db, 'users', currentUser.uid, 'recipes');
+  const mealplanCol   = () => collection(db, 'users', currentUser.uid, 'mealplan');
+  const mealplanDoc   = (d) => doc(db, 'users', currentUser.uid, 'mealplan', d);
+  const recipeDoc     = (id) => doc(db, 'users', currentUser.uid, 'recipes', id);
+  const savedPlansCol = () => collection(db, 'users', currentUser.uid, 'savedplans');
+  const savedPlanDoc  = (id) => doc(db, 'users', currentUser.uid, 'savedplans', id);
 
   // expose globals
   Object.assign(window, {
@@ -469,6 +522,7 @@
     selectMealType, filterRecipePicker, confirmAddMeal, removeMeal,
     selectShoppingWeek, switchAuthTab, handleLogin, handleSignup,
     handleGoogleLogin, handleLogout,
+    openSaveWeek, confirmSaveWeek, openLoadWeek, loadSavedPlan, deleteSavedPlan,
     pickRecipe: (id, el) => {
       selectedRecipeId = id;
       document.querySelectorAll('.recipe-pick-item').forEach(e => e.classList.remove('selected'));
@@ -529,7 +583,7 @@
     document.getElementById('app').style.display = 'block';
     document.getElementById('user-badge').textContent = 'Dev Mode';
     currentUser = { uid: 'dev-user' };
-    await Promise.all([loadRecipes(), loadMealPlan()]);
+    await Promise.all([loadRecipes(), loadMealPlan(), loadSavedPlans()]);
     renderShoppingWeekSelector();
     return;
     // ── ORIGINAL AUTH BLOCK (re-enable when ready) ──
@@ -538,7 +592,7 @@
       document.getElementById('auth-screen').style.display = 'none';
       document.getElementById('app').style.display = 'block';
       document.getElementById('user-badge').textContent = user.displayName || user.email;
-      await Promise.all([loadRecipes(), loadMealPlan()]);
+      await Promise.all([loadRecipes(), loadMealPlan(), loadSavedPlans()]);
       renderShoppingWeekSelector();
     } else {
       currentUser = null; recipes = []; mealPlan = {};
@@ -829,6 +883,7 @@
       cur.setDate(cur.getDate()+1);
     }
     grid.innerHTML = html;
+    renderPlannerWeekButtons();
   }
   function changeMonth(dir) {
     currentMonth += dir;
@@ -911,6 +966,125 @@
       <div class="shopping-meals">${mealsList}</div>
       <h3 style="font-family:'Playfair Display',serif;margin-bottom:1rem;font-size:1.1rem">🛒 Shopping List</h3>
       <div class="shopping-list"><div class="shopping-category"><div class="shopping-category-title">🧺 All Ingredients</div>${items}</div></div>`;
+  }
+
+  // ── SAVED WEEK PLANS ──
+  async function loadSavedPlans() {
+    const snap = await getDocs(savedPlansCol());
+    savedPlans = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  }
+
+  function openSaveWeek(weekIdx) {
+    saveWeekIndex = weekIdx;
+    document.getElementById('save-week-name').value = '';
+    document.getElementById('save-week-error').classList.remove('show');
+    document.getElementById('save-week-modal').classList.add('open');
+  }
+
+  async function confirmSaveWeek() {
+    const name = document.getElementById('save-week-name').value.trim();
+    const errEl = document.getElementById('save-week-error');
+    if (!name) { errEl.textContent = 'Please enter a name for this plan.'; errEl.classList.add('show'); return; }
+
+    const week = getWeeks(currentYear, currentMonth)[saveWeekIndex];
+    if (!week) return;
+
+    // Collect all meals for this week as relative day offsets (Mon=0 … Sun=6)
+    const days = {};
+    let d = new Date(week.start);
+    for (let offset = 0; offset <= 6; offset++) {
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      if (mealPlan[key] && mealPlan[key].length) days[offset] = mealPlan[key];
+      d.setDate(d.getDate() + 1);
+    }
+
+    const totalMeals = Object.values(days).reduce((sum, m) => sum + m.length, 0);
+    if (totalMeals === 0) {
+      errEl.textContent = 'This week has no meals to save. Add some meals first!';
+      errEl.classList.add('show');
+      return;
+    }
+
+    await addDoc(savedPlansCol(), {
+      name,
+      days,
+      totalMeals,
+      savedAt: new Date().toISOString()
+    });
+
+    await loadSavedPlans();
+    closeModal('save-week-modal');
+    toast(`"${name}" saved ✓`);
+  }
+
+  function openLoadWeek(weekIdx) {
+    loadWeekIndex = weekIdx;
+    renderSavedPlansList();
+    document.getElementById('load-week-modal').classList.add('open');
+  }
+
+  function renderSavedPlansList() {
+    const el = document.getElementById('saved-plans-list');
+    if (!savedPlans.length) {
+      el.innerHTML = '<div class="no-saved-plans">No saved plans yet.<br>Save a week from the Planner to see it here.</div>';
+      return;
+    }
+    el.innerHTML = '<div class="saved-plans-list">' + savedPlans.map(p => {
+      const date = new Date(p.savedAt).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+      return `<div class="saved-plan-item" onclick="loadSavedPlan('${p.id}')">
+        <div class="saved-plan-info">
+          <div class="saved-plan-name">${p.name}</div>
+          <div class="saved-plan-meta">${p.totalMeals} meal${p.totalMeals!==1?'s':''} · Saved ${date}</div>
+        </div>
+        <button class="saved-plan-delete" onclick="event.stopPropagation();deleteSavedPlan('${p.id}')" title="Delete">🗑</button>
+      </div>`;
+    }).join('') + '</div>';
+  }
+
+  async function loadSavedPlan(planId) {
+    const plan = savedPlans.find(p => p.id === planId);
+    if (!plan) return;
+
+    const week = getWeeks(currentYear, currentMonth)[loadWeekIndex];
+    if (!week) return;
+
+    // Map relative day offsets back onto actual dates for the target week
+    const promises = [];
+    for (const [offset, meals] of Object.entries(plan.days)) {
+      const d = new Date(week.start);
+      d.setDate(d.getDate() + parseInt(offset));
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      mealPlan[key] = meals;
+      promises.push(setDoc(mealplanDoc(key), { meals }));
+    }
+    await Promise.all(promises);
+
+    closeModal('load-week-modal');
+    renderCalendar();
+    toast(`"${plan.name}" loaded ✓`);
+  }
+
+  async function deleteSavedPlan(planId) {
+    if (!confirm('Delete this saved plan?')) return;
+    await deleteDoc(savedPlanDoc(planId));
+    await loadSavedPlans();
+    renderSavedPlansList();
+    toast('Plan deleted');
+  }
+
+  // ── UPDATE WEEK SELECTOR TO INCLUDE SAVE/LOAD BUTTONS ──
+  function renderPlannerWeekButtons() {
+    const weeks = getWeeks(currentYear, currentMonth);
+    const container = document.getElementById('planner-week-buttons');
+    if (!container) return;
+    container.innerHTML = weeks.map((w, i) =>
+      `<div class="week-btn-row">
+        <span style="font-size:0.82rem;color:var(--brown-light);min-width:54px">${w.label}</span>
+        <span style="font-size:0.75rem;color:var(--border)">${fmtDate(w.start)}–${fmtDate(w.end)}</span>
+        <button class="week-action-btn save" onclick="openSaveWeek(${i})">💾 Save</button>
+        <button class="week-action-btn" onclick="openLoadWeek(${i})">📂 Load</button>
+      </div>`
+    ).join('');
   }
 </script>
 </body>
