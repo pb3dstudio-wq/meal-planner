@@ -4,93 +4,285 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Buckley Meal Planner</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700;6..72,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --cream: #faf7f2;
-      --warm-white: #fff9f2;
-      --brown: #3b2a1a;
-      --brown-light: #6b4f35;
-      --accent: #c8623a;
-      --accent-light: #e8845e;
-      --green: #4a7c59;
-      --green-light: #6a9e78;
-      --gold: #d4a84b;
-      --border: #e2d9ce;
-      --shadow: 0 4px 24px rgba(59,42,26,0.10);
-      --shadow-lg: 0 8px 40px rgba(59,42,26,0.15);
-      --radius: 16px;
-      --radius-sm: 8px;
+      --bg: #f8f9ff;
+      --surface: #f8f9ff;
+      --surface-low: #f2f3fa;
+      --surface-container: #eceef4;
+      --surface-high: #e6e8ef;
+      --surface-highest: #e1e2e9;
+      --surface-white: #ffffff;
+      --on-surface: #191c21;
+      --on-surface-variant: #464836;
+      --outline: #777964;
+      --outline-variant: #c7c8b0;
+      --primary: #596400;
+      --primary-container: #e3f661;
+      --primary-fixed: #daed59;
+      --primary-fixed-dim: #bed03f;
+      --on-primary: #ffffff;
+      --on-primary-container: #647000;
+      --secondary: #9b4500;
+      --secondary-container: #fc8a40;
+      --on-secondary: #ffffff;
+      --error: #ba1a1a;
+      --error-container: #ffdad6;
+      --shadow-sm: 0 2px 8px rgba(25,28,33,0.06);
+      --shadow: 0 4px 24px rgba(25,28,33,0.08);
+      --shadow-lg: 0 8px 40px rgba(25,28,33,0.12);
+      --radius: 12px;
+      --radius-sm: 6px;
+      --radius-full: 12px;
     }
 
-    body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--brown); min-height: 100vh; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+    body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--on-surface); min-height: 100vh; }
+    .serif { font-family: 'Newsreader', serif; }
 
     /* ── AUTH SCREEN ── */
-    #auth-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--brown); padding: 1rem; }
-    .auth-card { background: var(--warm-white); border-radius: var(--radius); padding: 2.5rem 2rem; width: 100%; max-width: 420px; box-shadow: var(--shadow-lg); animation: slideUp 0.3s ease; }
-    .auth-logo { font-family: 'Playfair Display', serif; font-size: 1.8rem; text-align: center; margin-bottom: 0.25rem; color: var(--brown); }
-    .auth-logo span { color: var(--accent); }
-    .auth-subtitle { text-align: center; color: var(--brown-light); font-size: 0.9rem; margin-bottom: 2rem; }
-    .auth-tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 1.5rem; }
-    .auth-tab { flex: 1; padding: 0.6rem; background: none; border: none; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; cursor: pointer; color: var(--brown-light); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
-    .auth-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
-    .auth-error { background: #fde8e8; border: 1px solid #f5c6c6; color: #c0392b; border-radius: var(--radius-sm); padding: 0.65rem 0.9rem; font-size: 0.85rem; margin-bottom: 1rem; display: none; }
+    #auth-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--on-surface); padding: 1rem; }
+    .auth-card { background: var(--surface-white); border-radius: var(--radius); padding: 2.5rem 2rem; width: 100%; max-width: 420px; box-shadow: var(--shadow-lg); animation: slideUp 0.3s ease; }
+    .auth-logo { font-family: 'Newsreader', serif; font-size: 2rem; text-align: center; margin-bottom: 0.25rem; color: var(--on-surface); font-weight: 700; }
+    .auth-logo span { color: var(--primary); }
+    .auth-subtitle { text-align: center; color: var(--on-surface-variant); font-size: 0.9rem; margin-bottom: 2rem; font-style: italic; font-family: 'Newsreader', serif; }
+    .auth-tabs { display: flex; border-bottom: 2px solid var(--outline-variant); margin-bottom: 1.5rem; }
+    .auth-tab { flex: 1; padding: 0.6rem; background: none; border: none; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.95rem; cursor: pointer; color: var(--outline); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+    .auth-tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+    .auth-error { background: var(--error-container); border: 1px solid #f5c6c6; color: var(--error); border-radius: var(--radius-sm); padding: 0.65rem 0.9rem; font-size: 0.85rem; margin-bottom: 1rem; display: none; }
     .auth-error.show { display: block; }
-    .auth-divider { display: flex; align-items: center; gap: 0.75rem; margin: 1.25rem 0; color: var(--brown-light); font-size: 0.8rem; }
-    .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-    .btn-google { width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.6rem; padding: 0.7rem; border: 1.5px solid var(--border); border-radius: var(--radius-sm); background: white; font-family: 'DM Sans', sans-serif; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; color: var(--brown); }
-    .btn-google:hover { border-color: var(--accent); background: var(--cream); }
+    .auth-divider { display: flex; align-items: center; gap: 0.75rem; margin: 1.25rem 0; color: var(--outline); font-size: 0.8rem; }
+    .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--outline-variant); }
+    .btn-google { width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.6rem; padding: 0.7rem; border: 1.5px solid var(--outline-variant); border-radius: var(--radius-sm); background: white; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; color: var(--on-surface); }
+    .btn-google:hover { border-color: var(--primary); background: var(--surface-low); }
     .btn-google svg { width: 18px; height: 18px; flex-shrink: 0; }
-    .btn-auth { width: 100%; padding: 0.75rem; background: var(--accent); color: white; border: none; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 500; cursor: pointer; transition: all 0.2s; margin-top: 0.5rem; }
-    .btn-auth:hover { background: var(--accent-light); }
-    .btn-auth:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-auth { width: 100%; padding: 0.75rem; background: linear-gradient(135deg, var(--primary), var(--primary-fixed-dim)); color: var(--on-primary); border: none; border-radius: var(--radius-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-top: 0.5rem; box-shadow: var(--shadow-sm); }
+    .btn-auth:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: var(--shadow); }
+    .btn-auth:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
     /* ── APP ── */
     #app { display: none; }
 
     /* ── HEADER ── */
-    header { background: var(--brown); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 16px rgba(0,0,0,0.18); height: 64px; }
-    .logo { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--cream); letter-spacing: 0.02em; }
-    .logo span { color: var(--gold); }
+    header { background: rgba(248,249,255,0.92); backdrop-filter: blur(12px); padding: 0 2.5rem; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 8px 24px rgba(25,28,33,0.04); height: 68px; border-bottom: 1px solid rgba(199,200,176,0.3); }
+    .logo { font-family: 'Newsreader', serif; font-size: 1.5rem; color: var(--on-surface); font-weight: 600; }
     .header-right { display: flex; align-items: center; gap: 0.75rem; }
-    .user-badge { color: #c9b89e; font-size: 0.82rem; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .user-badge { color: var(--outline); font-size: 0.82rem; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     nav { display: flex; gap: 0.25rem; }
-    nav button { background: none; border: none; color: #c9b89e; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
-    nav button:hover { color: var(--cream); background: rgba(255,255,255,0.08); }
-    nav button.active { color: var(--gold); background: rgba(212,168,75,0.15); }
-    .btn-logout { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #c9b89e; font-family: 'DM Sans', sans-serif; font-size: 0.82rem; padding: 0.35rem 0.75rem; border-radius: 6px; cursor: pointer; transition: all 0.2s; }
-    .btn-logout:hover { background: rgba(255,255,255,0.15); color: white; }
+    nav button { background: none; border: none; color: var(--on-surface-variant); font-family: 'Newsreader', serif; font-size: 1rem; font-weight: 600; padding: 0.5rem 1.1rem; border-radius: 6px; cursor: pointer; transition: all 0.2s; letter-spacing: -0.01em; }
+    nav button:hover { color: var(--primary); }
+    nav button.active { color: var(--primary); border-bottom: 2px solid var(--primary); border-radius: 0; padding-bottom: 0.3rem; }
+    .btn-logout { background: var(--surface-container); border: 1px solid var(--outline-variant); color: var(--on-surface-variant); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.82rem; padding: 0.35rem 0.85rem; border-radius: 20px; cursor: pointer; transition: all 0.2s; font-weight: 600; }
+    .btn-logout:hover { background: var(--surface-high); color: var(--on-surface); }
 
     /* ── PAGES ── */
-    .page { display: none; padding: 2rem; max-width: 1200px; margin: 0 auto; }
+    .page { display: none; padding: 3rem 2.5rem 4rem; max-width: 1400px; margin: 0 auto; }
     .page.active { display: block; }
-    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid var(--border); }
-    .page-title { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; }
-    .page-title small { display: block; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 400; color: var(--brown-light); margin-top: 0.2rem; }
+
+    /* ── HERO HEADER (recipes page) ── */
+    .page-hero { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 3rem; gap: 2rem; flex-wrap: wrap; }
+    .page-hero-left .eyebrow { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em; color: var(--primary); margin-bottom: 0.4rem; }
+    .page-hero-left h1 { font-family: 'Newsreader', serif; font-size: 3.5rem; font-weight: 700; color: var(--on-surface); line-height: 1.1; letter-spacing: -0.02em; }
+    .page-hero-left p { font-family: 'Newsreader', serif; font-size: 1.1rem; color: var(--on-surface-variant); font-style: italic; margin-top: 0.5rem; max-width: 400px; }
+    .page-hero-actions { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+
+    /* standard page header for non-recipe pages */
+    .page-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1rem; }
+    .page-header-left .eyebrow { font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.2em; color: var(--primary); margin-bottom: 0.3rem; }
+    .page-header-left h1 { font-family: 'Newsreader', serif; font-size: 2.5rem; font-weight: 700; color: var(--on-surface); letter-spacing: -0.02em; }
 
     /* ── BUTTONS ── */
-    .btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1.25rem; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500; cursor: pointer; border: none; transition: all 0.2s; }
-    .btn-primary { background: var(--accent); color: white; }
-    .btn-primary:hover { background: var(--accent-light); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(200,98,58,0.3); }
-    .btn-secondary { background: var(--border); color: var(--brown); }
-    .btn-secondary:hover { background: #d6cdc2; }
-    .btn-danger { background: #e05555; color: white; }
-    .btn-danger:hover { background: #c44; }
-    .btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
-    .btn-icon { padding: 0.5rem; border-radius: 8px; background: var(--border); color: var(--brown); border: none; cursor: pointer; transition: all 0.2s; font-size: 1rem; }
-    .btn-icon:hover { background: var(--accent); color: white; }
+    .btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.6rem 1.4rem; border-radius: var(--radius-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.875rem; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; }
+    .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-fixed-dim)); color: var(--on-primary); box-shadow: var(--shadow-sm); }
+    .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: var(--shadow); }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-secondary { background: var(--surface-white); border: 1px solid rgba(199,200,176,0.4); color: var(--primary); }
+    .btn-secondary:hover { background: var(--surface-low); }
+    .btn-danger { background: var(--error-container); color: var(--error); border: none; }
+    .btn-danger:hover { background: #ffb4ab; }
+    .btn-sm { padding: 0.3rem 0.8rem; font-size: 0.78rem; }
+    .btn-icon { padding: 0.45rem; border-radius: 50%; background: transparent; color: var(--on-surface-variant); border: none; cursor: pointer; transition: all 0.2s; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; }
+    .btn-icon:hover { background: var(--primary-container); color: var(--primary); }
+    .btn-icon.danger:hover { background: var(--error-container); color: var(--error); }
+    .btn-green { background: var(--primary); color: var(--on-primary); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.875rem; font-weight: 700; padding: 0.6rem 1.2rem; border-radius: var(--radius-sm); border: none; cursor: pointer; transition: all 0.2s; }
+    .btn-green:hover { opacity: 0.85; }
 
     /* ── MODAL ── */
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(30,15,5,0.55); z-index: 200; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(2px); }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(25,28,33,0.5); z-index: 200; align-items: center; justify-content: center; padding: 1rem; backdrop-filter: blur(4px); }
     .modal-overlay.open { display: flex; }
-    .modal { background: var(--warm-white); border-radius: var(--radius); padding: 2rem; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); animation: slideUp 0.25s ease; }
+    .modal { background: var(--surface-white); border-radius: var(--radius); padding: 2rem; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); animation: slideUp 0.25s ease; }
     @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-    .modal-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; }
-    .modal-close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--brown-light); padding: 0.25rem; border-radius: 6px; transition: all 0.2s; }
-    .modal-close:hover { background: var(--border); }
+    .modal-title { font-family: 'Newsreader', serif; font-size: 1.5rem; font-weight: 700; color: var(--on-surface); }
+    .modal-close { background: var(--surface-container); border: none; font-size: 1.1rem; cursor: pointer; color: var(--outline); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .modal-close:hover { background: var(--surface-high); color: var(--on-surface); }
+
+    /* ── FORMS ── */
+    .form-group { margin-bottom: 1.1rem; }
+    label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--outline); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.08em; }
+    input[type=text], input[type=number], input[type=url], input[type=email], input[type=password], textarea, select { width: 100%; padding: 0.65rem 0.9rem; border: 1.5px solid var(--outline-variant); border-radius: var(--radius-sm); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.95rem; background: var(--surface-white); color: var(--on-surface); transition: border-color 0.2s; outline: none; }
+    input:focus, textarea:focus, select:focus { border-color: var(--primary); }
+    textarea { min-height: 90px; resize: vertical; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-actions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--outline-variant); }
+
+    /* ── INGREDIENTS ── */
+    .ingredient-list { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem; }
+    .ingredient-row { display: flex; gap: 0.5rem; align-items: center; }
+    .ingredient-row input { flex: 1; }
+    .ingredient-row input.qty { width: 80px; flex: none; }
+    .ingredient-row select.unit { width: 100px; flex: none; padding: 0.65rem 0.4rem; }
+    .add-ingredient-btn { background: none; border: 1.5px dashed var(--outline-variant); color: var(--outline); padding: 0.5rem; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.85rem; width: 100%; transition: all 0.2s; margin-top: 0.25rem; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; }
+    .add-ingredient-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* ── RECIPE CARDS ── */
+    .recipes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+    .recipe-card { background: var(--surface-white); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm); transition: all 0.5s; cursor: pointer; border: 1px solid rgba(199,200,176,0.15); }
+    .recipe-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-lg); }
+    .recipe-card-img { width: 100%; height: 200px; background: linear-gradient(135deg, var(--surface-container), var(--surface-high)); display: flex; align-items: center; justify-content: center; font-size: 3rem; overflow: hidden; position: relative; }
+    .recipe-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s; }
+    .recipe-card:hover .recipe-card-img img { transform: scale(1.08); }
+    .recipe-card-timer { position: absolute; top: 12px; right: 12px; backdrop-filter: blur(12px); background: rgba(255,255,255,0.75); padding: 0.2rem 0.65rem; border-radius: 20px; display: flex; align-items: center; gap: 0.3rem; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; color: var(--on-surface); text-transform: uppercase; }
+    .recipe-card-body { padding: 1.25rem 1.5rem 1.5rem; }
+    .recipe-card-name { font-family: 'Newsreader', serif; font-size: 1.25rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--on-surface); transition: color 0.2s; line-height: 1.3; }
+    .recipe-card:hover .recipe-card-name { color: var(--primary); }
+    .recipe-card-meta { display: flex; gap: 1rem; font-size: 0.78rem; color: var(--on-surface-variant); padding-top: 0.75rem; border-top: 1px solid rgba(199,200,176,0.2); }
+    .recipe-card-meta span { display: flex; align-items: center; gap: 0.3rem; font-weight: 500; }
+    .recipe-card-meta .material-symbols-outlined { font-size: 1rem; }
+    .recipe-card-actions { display: flex; gap: 0.25rem; opacity: 0; transition: opacity 0.2s; }
+    .recipe-card:hover .recipe-card-actions { opacity: 1; }
+    .recipe-card-top-row { display: flex; justify-content: space-between; align-items: flex-start; }
+    .empty-state { text-align: center; padding: 5rem 2rem; color: var(--outline); }
+    .empty-state .empty-icon { font-size: 4rem; margin-bottom: 1rem; opacity: 0.4; }
+    .empty-state p { font-family: 'Newsreader', serif; font-size: 1.1rem; font-style: italic; }
+
+    /* ── RECIPE DETAIL ── */
+    .recipe-detail { background: var(--surface-white); border-radius: var(--radius); padding: 2.5rem; box-shadow: var(--shadow-sm); }
+    .recipe-detail-img { width: 100%; height: 320px; border-radius: var(--radius-sm); margin-bottom: 2rem; background: linear-gradient(135deg, var(--surface-container), var(--surface-high)); display: flex; align-items: center; justify-content: center; font-size: 5rem; overflow: hidden; }
+    .recipe-detail-img img { width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-sm); }
+    .recipe-detail-title { font-family: 'Newsreader', serif; font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; letter-spacing: -0.02em; }
+    .recipe-meta-row { display: flex; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    .meta-badge { display: flex; flex-direction: column; }
+    .meta-badge-label { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: var(--outline); }
+    .meta-badge-value { font-family: 'Newsreader', serif; font-size: 1.1rem; font-weight: 700; color: var(--on-surface); }
+    .section-label { font-family: 'Newsreader', serif; font-size: 1.2rem; font-weight: 700; margin: 1.5rem 0 0.75rem; color: var(--on-surface); }
+    .ingredient-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.45rem 0; border-bottom: 1px solid var(--surface-low); font-size: 0.95rem; }
+    .ingredient-item::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--primary); flex-shrink: 0; }
+    .method-text { line-height: 1.9; font-size: 0.95rem; white-space: pre-wrap; color: var(--on-surface-variant); }
+    .back-btn { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--outline); background: none; border: none; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.875rem; font-weight: 600; padding: 0.4rem 0; margin-bottom: 1.5rem; transition: color 0.2s; }
+    .back-btn:hover { color: var(--primary); }
+
+    /* ── CALENDAR ── */
+    .planner-controls { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+    .month-nav { display: flex; align-items: center; gap: 0.75rem; }
+    .month-nav button { background: var(--surface-container); border: none; border-radius: var(--radius-sm); padding: 0.4rem 0.85rem; cursor: pointer; font-size: 1.1rem; transition: all 0.2s; color: var(--on-surface); font-weight: 700; }
+    .month-nav button:hover { background: var(--primary-container); color: var(--primary); }
+    .month-label { font-family: 'Newsreader', serif; font-size: 1.3rem; font-weight: 700; min-width: 190px; text-align: center; color: var(--on-surface); }
+    .calendar-outer { display: flex; flex-direction: column; gap: 6px; }
+    .calendar-week-row { display: flex; align-items: stretch; gap: 6px; }
+    .week-sidebar { display: flex; flex-direction: column; align-items: stretch; justify-content: center; gap: 4px; width: 60px; flex-shrink: 0; }
+    .week-action-btn { background: var(--surface-white); border: 1.5px solid var(--outline-variant); border-radius: var(--radius-sm); padding: 0.3rem 0; font-size: 0.68rem; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 700; cursor: pointer; color: var(--outline); transition: all 0.2s; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 0.2rem; flex: 1; }
+    .week-action-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--surface-low); }
+    .week-action-btn.save { border-color: var(--primary); color: var(--primary); }
+    .week-action-btn.save:hover { background: var(--primary); color: var(--on-primary); }
+    .week-days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; flex: 1; }
+    .calendar-day-header { text-align: center; font-size: 0.7rem; font-weight: 800; color: var(--outline); text-transform: uppercase; letter-spacing: 0.08em; padding: 0.5rem 0; }
+    .calendar-day { background: var(--surface-white); border-radius: var(--radius-sm); min-height: 90px; padding: 0.5rem; border: 1.5px solid rgba(199,200,176,0.3); transition: all 0.2s; }
+    .calendar-day:hover { border-color: var(--primary-fixed-dim); background: var(--surface-low); }
+    .calendar-day.today { border-color: var(--primary); background: rgba(227,246,97,0.08); }
+    .calendar-day.other-month { opacity: 0.4; }
+    .calendar-day.other-month:hover { opacity: 0.7; }
+    .day-number { font-size: 0.75rem; font-weight: 700; color: var(--outline); margin-bottom: 0.3rem; }
+    .calendar-day.today .day-number { color: var(--primary); }
+    .meal-chip { background: var(--secondary); color: white; border-radius: 4px; padding: 0.15rem 0.4rem; font-size: 0.65rem; font-weight: 600; display: flex; align-items: center; justify-content: space-between; gap: 0.25rem; line-height: 1.4; margin-bottom: 0.25rem; }
+    .meal-chip.lunch { background: var(--primary); }
+    .meal-chip.dinner { background: var(--on-surface); }
+    .meal-chip-remove { background: none; border: none; color: rgba(255,255,255,0.6); cursor: pointer; font-size: 0.7rem; padding: 0; flex-shrink: 0; }
+    .meal-chip-remove:hover { color: white; }
+    .add-meal-btn { background: none; border: 1px dashed rgba(199,200,176,0.6); color: var(--outline-variant); border-radius: 4px; padding: 0.15rem 0; font-size: 0.65rem; width: 100%; cursor: pointer; transition: all 0.2s; margin-top: 0.2rem; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; }
+    .add-meal-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* ── MEAL MODAL ── */
+    .meal-type-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+    .meal-type-btn { flex: 1; padding: 0.55rem; border: 1.5px solid var(--outline-variant); border-radius: var(--radius-sm); background: white; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.85rem; font-weight: 600; transition: all 0.2s; color: var(--on-surface-variant); }
+    .meal-type-btn.selected { border-color: var(--primary); background: rgba(227,246,97,0.15); color: var(--primary); }
+    .recipe-pick-list { max-height: 280px; overflow-y: auto; border: 1px solid var(--outline-variant); border-radius: var(--radius-sm); }
+    .recipe-pick-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 0.9rem; cursor: pointer; transition: background 0.15s; border-bottom: 1px solid var(--surface-low); }
+    .recipe-pick-item:last-child { border-bottom: none; }
+    .recipe-pick-item:hover { background: var(--surface-low); }
+    .recipe-pick-item.selected { background: rgba(227,246,97,0.2); }
+    .recipe-pick-thumb { width: 40px; height: 40px; border-radius: var(--radius-sm); background: var(--surface-container); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; overflow: hidden; }
+    .recipe-pick-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* ── SHOPPING ── */
+    .shopping-controls { display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+    .week-selector { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .week-btn { padding: 0.45rem 1rem; border: 1.5px solid var(--outline-variant); border-radius: 20px; background: var(--surface-white); cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.82rem; font-weight: 600; transition: all 0.2s; color: var(--on-surface-variant); }
+    .week-btn.active { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
+    .shopping-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; }
+    .shopping-category { background: var(--surface-white); border-radius: var(--radius); padding: 1.25rem 1.5rem; box-shadow: var(--shadow-sm); border: 1px solid rgba(199,200,176,0.2); }
+    .shopping-category-title { font-family: 'Newsreader', serif; font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--on-surface); }
+    .shopping-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.4rem 0; border-bottom: 1px solid var(--surface-low); font-size: 0.875rem; }
+    .shopping-item:last-child { border-bottom: none; }
+    .shopping-item input[type=checkbox] { accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; }
+    .shopping-item label { cursor: pointer; flex: 1; font-weight: 500; }
+    .shopping-item.checked label { text-decoration: line-through; color: var(--outline); font-weight: 400; }
+    .no-meals { text-align: center; padding: 3rem; color: var(--outline); font-family: 'Newsreader', serif; font-size: 1.05rem; font-style: italic; }
+
+    /* ── IMPORT MODALS ── */
+    .import-choice { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem; }
+    .import-choice-btn { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1.5rem 1rem; border: 1.5px solid var(--outline-variant); border-radius: var(--radius); background: var(--surface-white); cursor: pointer; transition: all 0.2s; font-family: 'Plus Jakarta Sans', sans-serif; color: var(--on-surface); }
+    .import-choice-btn:hover { border-color: var(--primary); background: rgba(227,246,97,0.1); }
+    .import-choice-btn .choice-icon { font-size: 2rem; }
+    .import-choice-btn .choice-label { font-weight: 700; font-size: 0.95rem; }
+    .import-choice-btn .choice-sub { font-size: 0.75rem; color: var(--outline); text-align: center; }
+    .import-status { text-align: center; padding: 1.5rem 1rem; }
+    .import-status .spinner { margin: 0 auto 0.75rem; }
+    .import-status p { color: var(--outline); font-size: 0.9rem; }
+    .import-error { background: var(--error-container); border: 1px solid #ffb4ab; color: var(--error); border-radius: var(--radius-sm); padding: 0.65rem 0.9rem; font-size: 0.85rem; margin-top: 0.75rem; display: none; }
+    .import-error.show { display: block; }
+
+    /* ── SAVED PLANS ── */
+    .saved-plans-list { display: flex; flex-direction: column; gap: 0.6rem; max-height: 340px; overflow-y: auto; margin-top: 0.5rem; }
+    .saved-plan-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.9rem 1rem; border: 1.5px solid var(--outline-variant); border-radius: var(--radius-sm); background: var(--surface-white); cursor: pointer; transition: all 0.2s; }
+    .saved-plan-item:hover { border-color: var(--primary); background: rgba(227,246,97,0.1); }
+    .saved-plan-info { flex: 1; }
+    .saved-plan-name { font-weight: 700; font-size: 0.95rem; color: var(--on-surface); }
+    .saved-plan-meta { font-size: 0.78rem; color: var(--outline); margin-top: 0.15rem; }
+    .saved-plan-delete { background: none; border: none; color: var(--outline-variant); cursor: pointer; font-size: 1rem; padding: 0.3rem; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .saved-plan-delete:hover { color: var(--error); background: var(--error-container); }
+    .no-saved-plans { text-align: center; padding: 2rem; color: var(--outline); font-size: 0.9rem; font-style: italic; font-family: 'Newsreader', serif; }
+
+    /* ── TOAST / LOADING ── */
+    #toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--on-surface); color: white; padding: 0.75rem 1.4rem; border-radius: var(--radius-sm); font-size: 0.875rem; font-weight: 600; z-index: 999; opacity: 0; transform: translateY(10px); transition: all 0.3s; pointer-events: none; box-shadow: var(--shadow-lg); }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    .loading { text-align: center; padding: 4rem; color: var(--outline); }
+    .spinner { width: 36px; height: 36px; border: 3px solid var(--surface-container); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 700px) {
+      .calendar-week-row { gap: 3px; }
+      .calendar-day { min-height: 60px; padding: 0.3rem; }
+      .week-sidebar { width: 46px; }
+      .recipes-grid { grid-template-columns: 1fr 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      nav button { font-size: 0.85rem; padding: 0.4rem 0.6rem; }
+      .page { padding: 1.5rem 1rem 3rem; }
+      .user-badge { display: none; }
+      .page-hero-left h1 { font-size: 2.5rem; }
+    }
+  </style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream: #faf7f2;
+      --warm-white: #fff9f2;
+    /* ── APP ── */
+    #app { display: none; }
 
     /* ── FORMS ── */
     .form-group { margin-bottom: 1.1rem; }
@@ -259,6 +451,10 @@
         <label>Password</label>
         <input type="password" id="login-password" placeholder="Your password"/>
       </div>
+      <div style="display:flex;align-items:center;gap:0.5rem;margin:0.5rem 0 0.25rem">
+        <input type="checkbox" id="remember-me" style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer;" checked/>
+        <label for="remember-me" style="text-transform:none;letter-spacing:0;font-size:0.875rem;color:var(--on-surface-variant);cursor:pointer;font-weight:500">Remember me</label>
+      </div>
       <button class="btn-auth" id="login-btn" onclick="handleLogin()">Sign In</button>
     </div>
     <div id="auth-signup-form" style="display:none">
@@ -288,22 +484,47 @@
 <!-- ════════════ MAIN APP ════════════ -->
 <div id="app">
   <header>
-    <div class="logo">Buckley <span>Meals</span></div>
-    <nav>
-      <button class="active" onclick="showPage('recipes')">🍳 Recipes</button>
-      <button onclick="showPage('planner')">📅 Planner</button>
-      <button onclick="showPage('shopping')">🛒 Shopping</button>
-    </nav>
+    <div style="display:flex;align-items:center;gap:3rem">
+      <div class="logo serif">Buckley Meals</div>
+      <nav>
+        <button class="active" onclick="showPage('recipes')">Recipes</button>
+        <button onclick="showPage('planner')">Planner</button>
+        <button onclick="showPage('shopping')">Shopping</button>
+      </nav>
+    </div>
     <div class="header-right">
       <span class="user-badge" id="user-badge"></span>
       <button class="btn-logout" onclick="handleLogout()">Sign Out</button>
     </div>
   </header>
 
-  <div id="page-recipes" class="page active">
-    <div class="page-header">
-      <div class="page-title">My Recipes <small>Your personal recipe collection</small></div>
-      <button class="btn btn-primary" onclick="openAddRecipeChooser()">＋ Add Recipe</button>
+  <!-- MIGRATION BANNER -->
+  <div id="migration-banner" style="display:none;background:var(--primary-container);border-bottom:1px solid var(--primary-fixed-dim);padding:0.85rem 2.5rem;display:none;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:0.75rem">
+      <span class="material-symbols-outlined" style="color:var(--primary)">move_down</span>
+      <span style="font-size:0.9rem;font-weight:600;color:var(--on-surface)">We found data from dev mode. Would you like to migrate your recipes and meal plans to your account?</span>
+    </div>
+    <div style="display:flex;gap:0.75rem;flex-shrink:0">
+      <button class="btn btn-secondary btn-sm" onclick="dismissMigration()">No thanks</button>
+      <button class="btn btn-primary btn-sm" id="migrate-btn" onclick="migrateDevData()">
+        <span class="material-symbols-outlined" style="font-size:0.9rem">move_down</span> Migrate my data
+      </button>
+    </div>
+  </div>
+    <div class="page-hero">
+      <div class="page-hero-left">
+        <div class="eyebrow">Collection</div>
+        <h1>My Recipes</h1>
+        <p>Your personal recipe collection, curated for every taste and occasion.</p>
+      </div>
+      <div class="page-hero-actions">
+        <button class="btn btn-secondary" onclick="openAddRecipeChooser()">
+          <span class="material-symbols-outlined" style="font-size:1rem">link</span> Import from Web
+        </button>
+        <button class="btn btn-primary" onclick="openAddRecipeChooser()">
+          <span class="material-symbols-outlined" style="font-size:1rem">add</span> Add Recipe
+        </button>
+      </div>
     </div>
     <div id="recipes-container"><div class="loading"><div class="spinner"></div>Loading…</div></div>
   </div>
@@ -315,7 +536,10 @@
 
   <div id="page-planner" class="page">
     <div class="page-header">
-      <div class="page-title">Meal Planner <small>Plan your meals for the month</small></div>
+      <div class="page-header-left">
+        <div class="eyebrow">Schedule</div>
+        <h1>Meal Planner</h1>
+      </div>
     </div>
     <div class="planner-controls">
       <div class="month-nav">
@@ -329,8 +553,13 @@
 
   <div id="page-shopping" class="page">
     <div class="page-header">
-      <div class="page-title">Shopping List <small>Generated from your meal plan</small></div>
-      <button class="btn btn-secondary" onclick="window.print()">🖨️ Print</button>
+      <div class="page-header-left">
+        <div class="eyebrow">Weekly</div>
+        <h1>Shopping List</h1>
+      </div>
+      <button class="btn btn-secondary" onclick="window.print()">
+        <span class="material-symbols-outlined" style="font-size:1rem">print</span> Print
+      </button>
     </div>
     <div class="shopping-controls"><div class="week-selector" id="week-selector"></div></div>
     <div id="shopping-content"><div class="no-meals">Select a week above to generate your shopping list.</div></div>
@@ -490,7 +719,8 @@
   import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc, updateDoc, setDoc }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
   import { getAuth, onAuthStateChanged, signInWithEmailAndPassword,
-    createUserWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup }
+    createUserWithEmailAndPassword, signOut, GoogleAuthProvider, signInWithPopup,
+    setPersistence, browserLocalPersistence, browserSessionPersistence }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
   const firebaseConfig = {
@@ -530,6 +760,7 @@
     selectShoppingWeek, switchAuthTab, handleLogin, handleSignup,
     handleGoogleLogin, handleLogout,
     openSaveWeek, confirmSaveWeek, openLoadWeek, loadSavedPlan, deleteSavedPlan,
+    dismissMigration, migrateDevData,
     pickRecipe: (id, el) => {
       selectedRecipeId = id;
       document.querySelectorAll('.recipe-pick-item').forEach(e => e.classList.remove('selected'));
@@ -565,11 +796,14 @@
   async function handleLogin() {
     const email = document.getElementById('login-email').value.trim();
     const pass  = document.getElementById('login-password').value;
+    const rememberMe = document.getElementById('remember-me').checked;
     if (!email || !pass) { showAuthError('Please enter your email and password.'); return; }
     setAuthLoading('login-btn', true);
     document.getElementById('auth-error').classList.remove('show');
-    try { await signInWithEmailAndPassword(auth, email, pass); }
-    catch(e) { showAuthError(friendlyError(e.code)); setAuthLoading('login-btn', false); }
+    try {
+      await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
+      await signInWithEmailAndPassword(auth, email, pass);
+    } catch(e) { showAuthError(friendlyError(e.code)); setAuthLoading('login-btn', false); }
   }
   async function handleSignup() {
     const email = document.getElementById('signup-email').value.trim();
@@ -588,17 +822,52 @@
   }
   async function handleLogout() { await signOut(auth); }
 
+  // ── MIGRATION ──
+  async function checkForDevData() {
+    try {
+      const devRecipes = await getDocs(collection(db, 'users', 'dev-user', 'recipes'));
+      const devMeals   = await getDocs(collection(db, 'users', 'dev-user', 'mealplan'));
+      if (devRecipes.size > 0 || devMeals.size > 0) {
+        document.getElementById('migration-banner').style.display = 'flex';
+      }
+    } catch(e) { /* no dev data, that's fine */ }
+  }
+
+  function dismissMigration() {
+    document.getElementById('migration-banner').style.display = 'none';
+  }
+
+  async function migrateDevData() {
+    const btn = document.getElementById('migrate-btn');
+    btn.textContent = 'Migrating…';
+    btn.disabled = true;
+    try {
+      // Migrate recipes
+      const devRecipes = await getDocs(collection(db, 'users', 'dev-user', 'recipes'));
+      for (const d of devRecipes.docs) {
+        await setDoc(doc(db, 'users', currentUser.uid, 'recipes', d.id), d.data());
+      }
+      // Migrate meal plan
+      const devMeals = await getDocs(collection(db, 'users', 'dev-user', 'mealplan'));
+      for (const d of devMeals.docs) {
+        await setDoc(doc(db, 'users', currentUser.uid, 'mealplan', d.id), d.data());
+      }
+      // Migrate saved plans
+      const devSaved = await getDocs(collection(db, 'users', 'dev-user', 'savedplans'));
+      for (const d of devSaved.docs) {
+        await setDoc(doc(db, 'users', currentUser.uid, 'savedplans', d.id), d.data());
+      }
+      await Promise.all([loadRecipes(), loadMealPlan(), loadSavedPlans()]);
+      dismissMigration();
+      toast('All data migrated successfully ✓');
+    } catch(e) {
+      toast('Migration failed — please try again');
+      btn.textContent = 'Migrate my data';
+      btn.disabled = false;
+    }
+  }
+
   onAuthStateChanged(auth, async (user) => {
-    // ── AUTH TEMPORARILY DISABLED FOR DEVELOPMENT ──
-    // To re-enable: remove the 4 lines below this comment and uncomment the original block
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    document.getElementById('user-badge').textContent = 'Dev Mode';
-    currentUser = { uid: 'dev-user' };
-    await Promise.all([loadRecipes(), loadMealPlan(), loadSavedPlans()]);
-    renderShoppingWeekSelector();
-    return;
-    // ── ORIGINAL AUTH BLOCK (re-enable when ready) ──
     if (user) {
       currentUser = user;
       document.getElementById('auth-screen').style.display = 'none';
@@ -606,10 +875,12 @@
       document.getElementById('user-badge').textContent = user.displayName || user.email;
       await Promise.all([loadRecipes(), loadMealPlan(), loadSavedPlans()]);
       renderShoppingWeekSelector();
+      await checkForDevData();
     } else {
       currentUser = null; recipes = []; mealPlan = {};
       document.getElementById('auth-screen').style.display = 'flex';
       document.getElementById('app').style.display = 'none';
+      document.getElementById('migration-banner').style.display = 'none';
     }
   });
 
@@ -784,14 +1055,21 @@
     const c = document.getElementById('recipes-container');
     if (!recipes.length) { c.innerHTML = `<div class="empty-state"><div class="empty-icon">🍽️</div><p>No recipes yet — add your first one!</p></div>`; return; }
     c.innerHTML = `<div class="recipes-grid">${recipes.map(r => {
-      const img = r.image ? `<div class="recipe-card-img"><img src="${r.image}" onerror="this.parentElement.innerHTML='🍽️'"/></div>` : `<div class="recipe-card-img">🍽️</div>`;
+      const img = r.image
+        ? `<div class="recipe-card-img"><img src="${r.image}" onerror="this.parentElement.innerHTML='🍽️'"/>${r.prep||r.cook?`<div class="recipe-card-timer"><span class="material-symbols-outlined" style="font-size:0.85rem;color:var(--secondary);font-variation-settings:'FILL' 1">timer</span>${r.prep||r.cook}</div>`:''}</div>`
+        : `<div class="recipe-card-img">🍽️${r.prep||r.cook?`<div class="recipe-card-timer"><span class="material-symbols-outlined" style="font-size:0.85rem;color:var(--secondary);font-variation-settings:'FILL' 1">timer</span>${r.prep||r.cook}</div>`:''}</div>`;
       return `<div class="recipe-card" onclick="viewRecipe('${r.id}')">${img}
         <div class="recipe-card-body">
-          <div class="recipe-card-name">${r.name}</div>
-          <div class="recipe-card-meta">${r.prep?`<span>⏱ ${r.prep}</span>`:''}${r.servings?`<span>👤 ${r.servings}</span>`:''}</div>
-          <div class="recipe-card-actions">
-            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();editRecipe('${r.id}')">✏️ Edit</button>
-            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteRecipe('${r.id}')">🗑</button>
+          <div class="recipe-card-top-row">
+            <div class="recipe-card-name">${r.name}</div>
+            <div class="recipe-card-actions">
+              <button class="btn-icon" onclick="event.stopPropagation();editRecipe('${r.id}')" title="Edit"><span class="material-symbols-outlined" style="font-size:1.1rem">edit</span></button>
+              <button class="btn-icon danger" onclick="event.stopPropagation();deleteRecipe('${r.id}')" title="Delete"><span class="material-symbols-outlined" style="font-size:1.1rem">delete</span></button>
+            </div>
+          </div>
+          <div class="recipe-card-meta">
+            ${r.servings?`<span><span class="material-symbols-outlined">group</span>${r.servings} serving${r.servings!=1?'s':''}</span>`:''}
+            ${r.cook?`<span><span class="material-symbols-outlined" style="color:var(--secondary);font-variation-settings:'FILL' 1">local_fire_department</span>${r.cook}</span>`:''}
           </div>
         </div></div>`;
     }).join('')}</div>`;
@@ -800,9 +1078,14 @@
     const r = recipes.find(x => x.id === id); if (!r) return;
     const img = r.image ? `<div class="recipe-detail-img"><img src="${r.image}" onerror="this.parentElement.innerHTML='🍽️'"/></div>` : `<div class="recipe-detail-img">🍽️</div>`;
     const ings = (r.ingredients||[]).map(i => `<div class="ingredient-item">${i.qty?i.qty+' ':''}${i.unit?i.unit+' ':''}${i.name}</div>`).join('');
-    document.getElementById('recipe-detail-content').innerHTML = `<div class="recipe-detail">${img}
-      <div class="recipe-detail-title">${r.name}</div>
-      <div class="recipe-meta-row">${r.prep?`<div class="meta-badge">⏱ Prep: ${r.prep}</div>`:''}${r.cook?`<div class="meta-badge">🔥 Cook: ${r.cook}</div>`:''}${r.servings?`<div class="meta-badge">👤 Serves ${r.servings}</div>`:''}</div>
+    document.getElementById('recipe-detail-content').innerHTML = `<div class="recipe-detail">
+      ${img}
+      <div class="recipe-detail-title serif">${r.name}</div>
+      <div class="recipe-meta-row">
+        ${r.prep?`<div class="meta-badge"><span class="meta-badge-label">Prep</span><span class="meta-badge-value">${r.prep}</span></div>`:''}
+        ${r.cook?`<div class="meta-badge"><span class="meta-badge-label">Cook</span><span class="meta-badge-value">${r.cook}</span></div>`:''}
+        ${r.servings?`<div class="meta-badge"><span class="meta-badge-label">Serves</span><span class="meta-badge-value">${r.servings}</span></div>`:''}
+      </div>
       ${ings?`<div class="section-label">Ingredients</div>${ings}`:''}
       ${r.method?`<div class="section-label">Method</div><div class="method-text">${r.method}</div>`:''}</div>`;
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
